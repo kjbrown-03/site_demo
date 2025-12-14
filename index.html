@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImmoHome - Trouvez votre maison de rêve</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="container">
+                <div class="logo">
+                    <i class="fas fa-home"></i>
+                    <span>ImmoHome</span>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="buy.php" class="active">Acheter</a></li>
+                    <li><a href="rent.php">Louer</a></li>
+                    <li><a href="sell.php">Vendre</a></li>
+                    <li><a href="agents.php">Agents</a></li>
+                    <li><a href="financing.php">Financement</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <button class="btn-secondary"><i class="fas fa-heart"></i> Favoris</button>
+                    <button class="btn-primary" onclick="location.href='login.php'">Connexion</button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Trouvez votre maison de rêve</h1>
+            <p class="hero-subtitle">Achat · Location · Vente · Estimation</p>
+            
+            <div class="search-box">
+                <div class="search-tabs">
+                    <button class="tab-btn active" data-tab="buy">Acheter</button>
+                    <button class="tab-btn" data-tab="rent">Louer</button>
+                    <button class="tab-btn" data-tab="sell">Vendre</button>
+                </div>
+                <div class="search-form">
+                    <div class="search-input-group">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Ville, quartier, code postal..." class="search-input">
+                    </div>
+                    <button class="search-btn"><i class="fas fa-search"></i> Rechercher</button>
+                </div>
+            </div>
+        </div>
+        <div class="hero-overlay"></div>
+    </section>
+
+    <section class="filters-section">
+        <div class="container">
+            <div class="filters">
+                <div class="filter-item">
+                    <label>Type de bien</label>
+                    <select aria-label="Type de bien">
+                        <option>Tous</option>
+                        <option>Maison</option>
+                        <option>Appartement</option>
+                        <option>Villa</option>
+                        <option>Terrain</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>Prix max</label>
+                    <select aria-label="Prix maximum">
+                        <option>Tous</option>
+                        <option>100 000€</option>
+                        <option>200 000€</option>
+                        <option>300 000€</option>
+                        <option>500 000€</option>
+                        <option>1 000 000€+</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>Chambres</label>
+                    <select aria-label="Nombre de chambres">
+                        <option>Toutes</option>
+                        <option>1+</option>
+                        <option>2+</option>
+                        <option>3+</option>
+                        <option>4+</option>
+                        <option>5+</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>Salles de bain</label>
+                    <select aria-label="Nombre de salles de bain">
+                        <option>Toutes</option>
+                        <option>1+</option>
+                        <option>2+</option>
+                        <option>3+</option>
+                    </select>
+                </div>
+                <button class="filter-more" aria-label="Plus de filtres">
+                    <i class="fas fa-sliders-h"></i> Plus de filtres
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="trending-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Propriétés tendances</h2>
+                <p>Les plus vues et sauvegardées ces dernières 24 heures</p>
+            </div>
+            
+            <div class="properties-carousel">
+                <button class="carousel-btn prev" aria-label="Précédent"><i class="fas fa-chevron-left"></i></button>
+                <div class="properties-grid" id="propertiesGrid">
+                    <!-- Properties will be loaded dynamically -->
+                </div>
+                <button class="carousel-btn next" aria-label="Suivant"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <section class="services-section">
+        <div class="container">
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-image" style="background-image: url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600');">
+                        <div class="service-overlay"></div>
+                    </div>
+                    <div class="service-content">
+                        <i class="fas fa-home service-icon"></i>
+                        <h3>Acheter une maison</h3>
+                        <p>Un agent immobilier peut vous fournir une ventilation claire des coûts pour éviter les dépenses surprises.</p>
+                        <a href="#" class="service-link">Trouver un agent local <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-image" style="background-image: url('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600');">
+                        <div class="service-overlay"></div>
+                    </div>
+                    <div class="service-content">
+                        <i class="fas fa-hand-holding-usd service-icon"></i>
+                        <h3>Financer votre achat</h3>
+                        <p>Obtenez une pré-approbation pour être prêt à faire une offre rapidement quand vous trouvez la bonne maison.</p>
+                        <a href="#" class="service-link">Commencer maintenant <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-image" style="background-image: url('https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=600');">
+                        <div class="service-overlay"></div>
+                    </div>
+                    <div class="service-content">
+                        <i class="fas fa-dollar-sign service-icon"></i>
+                        <h3>Vendre votre maison</h3>
+                        <p>Quel que soit le chemin que vous prenez pour vendre votre maison, nous pouvons vous aider à réussir.</p>
+                        <a href="#" class="service-link">Voir vos options <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">1M+</div>
+                    <div class="stat-label">Propriétés listées</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">50K+</div>
+                    <div class="stat-label">Ventes réalisées</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">2K+</div>
+                    <div class="stat-label">Agents partenaires</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">Clients satisfaits</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-logo">
+                        <i class="fas fa-home"></i>
+                        <span>ImmoHome</span>
+                    </div>
+                    <p>Votre partenaire de confiance pour trouver la maison parfaite.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Acheter</h4>
+                    <ul>
+                        <li><a href="#">Maisons</a></li>
+                        <li><a href="#">Appartements</a></li>
+                        <li><a href="#">Villas</a></li>
+                        <li><a href="#">Terrains</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Services</h4>
+                    <ul>
+                        <li><a href="#">Estimation gratuite</a></li>
+                        <li><a href="#">Financement</a></li>
+                        <li><a href="#">Assurance</a></li>
+                        <li><a href="#">Déménagement</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Société</h4>
+                    <ul>
+                        <li><a href="#">À propos</a></li>
+                        <li><a href="#">Carrières</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ImmoHome. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
