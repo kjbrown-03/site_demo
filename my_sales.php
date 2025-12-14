@@ -11,6 +11,33 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'seller') {
 
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
+
+// Fetch sales data from database
+try {
+    // Fetch sales records
+    $stmt = $pdo->prepare("SELECT o.*, p.title, p.address, p.city FROM orders o JOIN properties p ON o.property_id = p.id WHERE p.agent_id = ? ORDER BY o.created_at DESC");
+    $stmt->execute([$_SESSION['user_id']]);
+    $sales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Calculate statistics
+    $totalRevenue = 0;
+    $totalSales = count($sales);
+    
+    foreach ($sales as $sale) {
+        $totalRevenue += $sale['total_amount'];
+    }
+    
+    // Commission rate (you can adjust this as needed)
+    $commissionRate = 0.05; // 5%
+    $totalCommission = $totalRevenue * $commissionRate;
+    
+} catch(PDOException $e) {
+    $sales = [];
+    $totalRevenue = 0;
+    $totalSales = 0;
+    $totalCommission = 0;
+    error_log("Error fetching sales data: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
@@ -88,7 +115,7 @@ $userRole = $_SESSION['role'];
                         <i class="fas fa-euro-sign"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>€1,245,000</h3>
+                        <h3>€<?php echo number_format($totalRevenue, 0, ',', ' '); ?></h3>
                         <p>Revenus Totaux</p>
                     </div>
                 </div>
@@ -98,7 +125,7 @@ $userRole = $_SESSION['role'];
                         <i class="fas fa-home"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>12</h3>
+                        <h3><?php echo $totalSales; ?></h3>
                         <p>Propriétés Vendues</p>
                     </div>
                 </div>
@@ -108,8 +135,8 @@ $userRole = $_SESSION['role'];
                         <i class="fas fa-chart-line"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>15.3%</h3>
-                        <p>Taux de Conversion</p>
+                        <h3>€<?php echo number_format($totalCommission, 0, ',', ' '); ?></h3>
+                        <p>Commission Totale</p>
                     </div>
                 </div>
                 
@@ -118,7 +145,7 @@ $userRole = $_SESSION['role'];
                         <i class="fas fa-star"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>4.8/5</h3>
+                        <h3>4.5/5</h3>
                         <p>Note Moyenne</p>
                     </div>
                 </div>
@@ -144,34 +171,21 @@ $userRole = $_SESSION['role'];
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>12 Déc 2024</td>
-                            <td>123 Main Street, Paris</td>
-                            <td>€485,000</td>
-                            <td>€24,250</td>
-                            <td><span class="status-badge completed">Complétée</span></td>
-                        </tr>
-                        <tr>
-                            <td>28 Nov 2024</td>
-                            <td>45 City Avenue, Lyon</td>
-                            <td>€325,000</td>
-                            <td>€16,250</td>
-                            <td><span class="status-badge completed">Complétée</span></td>
-                        </tr>
-                        <tr>
-                            <td>15 Nov 2024</td>
-                            <td>78 Hill Road, Nice</td>
-                            <td>€629,000</td>
-                            <td>€31,450</td>
-                            <td><span class="status-badge completed">Complétée</span></td>
-                        </tr>
-                        <tr>
-                            <td>3 Nov 2024</td>
-                            <td>102 Park Lane, Marseille</td>
-                            <td>€295,000</td>
-                            <td>€14,750</td>
-                            <td><span class="status-badge completed">Complétée</span></td>
-                        </tr>
+                        <?php if (!empty($sales)): ?>
+                            <?php foreach ($sales as $sale): ?>
+                                <tr>
+                                    <td><?php echo date('d M Y', strtotime($sale['created_at'])); ?></td>
+                                    <td><?php echo htmlspecialchars($sale['title'] . ', ' . $sale['city']); ?></td>
+                                    <td>€<?php echo number_format($sale['total_amount'], 0, ',', ' '); ?></td>
+                                    <td>€<?php echo number_format($sale['total_amount'] * 0.05, 0, ',', ' '); ?></td>
+                                    <td><span class="status-badge completed">Complétée</span></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="5" style="text-align: center;">Aucune vente enregistrée</td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>

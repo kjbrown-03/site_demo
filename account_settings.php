@@ -26,7 +26,12 @@ function t($key) {
             'city' => 'Ville',
             'country' => 'Pays',
             'save_changes' => 'Enregistrer les modifications',
-            'cancel' => 'Annuler'
+            'cancel' => 'Annuler',
+            'language' => 'Langue',
+            'theme' => 'Thème',
+            'light' => 'Clair',
+            'dark' => 'Sombre',
+            'notifications_enabled' => 'Activer les notifications'
         ]
     ];
     
@@ -65,6 +70,8 @@ try {
         $city = $user['city'] ?? '';
         $country = $user['country'] ?? '';
         $profilePicture = $user['profile_picture'] ?? '';
+        $language = $user['language_preference'] ?? 'fr';
+        $theme = $user['theme_preference'] ?? 'light';
     } else {
         $error = "Utilisateur non trouvé.";
     }
@@ -111,6 +118,46 @@ if (isset($_POST['upload_picture'])) {
         $error = "Veuillez sélectionner une image à télécharger.";
     }
 }
+
+// Handle user information update
+if (isset($_POST['update_user_info'])) {
+    $firstName = $_POST['first_name'] ?? '';
+    $lastName = $_POST['last_name'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $phone = $_POST['phone'] ?? '';
+    $city = $_POST['city'] ?? '';
+    $country = $_POST['country'] ?? '';
+    
+    try {
+        $stmt = $pdo->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, phone = ?, city = ?, country = ? WHERE id = ?");
+        $stmt->execute([$firstName, $lastName, $email, $phone, $city, $country, $_SESSION['user_id']]);
+        $message = "Informations mises à jour avec succès!";
+        
+        // Update session variables
+        $_SESSION['first_name'] = $firstName;
+        $_SESSION['last_name'] = $lastName;
+    } catch (PDOException $e) {
+        $error = "Erreur lors de la mise à jour des informations.";
+    }
+}
+
+// Handle language and theme update
+if (isset($_POST['update_preferences'])) {
+    $language = $_POST['language'] ?? 'fr';
+    $theme = $_POST['theme'] ?? 'light';
+    
+    try {
+        $stmt = $pdo->prepare("UPDATE users SET language_preference = ?, theme_preference = ? WHERE id = ?");
+        $stmt->execute([$language, $theme, $_SESSION['user_id']]);
+        $message = "Préférences mises à jour avec succès!";
+        
+        // Update session variables
+        $_SESSION['language'] = $language;
+        $_SESSION['theme'] = $theme;
+    } catch (PDOException $e) {
+        $error = "Erreur lors de la mise à jour des préférences.";
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -130,21 +177,6 @@ if (isset($_POST['upload_picture'])) {
                     <span>ImmoHome</span>
                 </div>
                 <ul class="nav-links">
-                    <?php if ($userRole === 'seller'): ?>
-                        <li><a href="seller_dashboard.php">Dashboard</a></li>
-                        <li><a href="my_properties.php">Mes Propriétés</a></li>
-                        <li><a href="add_property.php">Ajouter</a></li>
-                        <li><a href="my_sales.php">Mes Ventes</a></li>
-                    <?php elseif ($userRole === 'agent'): ?>
-                        <li><a href="agent_dashboard.php">Dashboard</a></li>
-                        <li><a href="my_listings.php">Mes Annonces</a></li>
-                        <li><a href="client_leads.php">Prospects</a></li>
-                        <li><a href="appointments.php">Rendez-vous</a></li>
-                    <?php elseif ($userRole === 'buyer'): ?>
-                        <li><a href="buyer_dashboard.php">Dashboard</a></li>
-                        <li><a href="search_properties.php">Rechercher</a></li>
-                        <li><a href="my_orders.php">Mes Commandes</a></li>
-                    <?php endif; ?>
                     <li><a href="favorites.php">Favoris</a></li>
                 </ul>
                 <div class="nav-actions">
@@ -160,9 +192,6 @@ if (isset($_POST['upload_picture'])) {
                             <div class="profile-name"><?php echo htmlspecialchars($username); ?></div>
                             <div class="profile-role"><?php echo ucfirst($userRole); ?></div>
                         </div>
-                        <a href="account_settings.php"><i class="fas fa-cog"></i> Paramètres</a>
-                        <a href="account_settings.php#language-theme"><i class="fas fa-paint-brush"></i> Langue & Thème</a>
-                        <a href="account_settings.php#user-info"><i class="fas fa-address-card"></i> Informations Utilisateur</a>
                         <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
                     </div>
                 </div>
@@ -179,6 +208,18 @@ if (isset($_POST['upload_picture'])) {
 
     <section class="settings-content">
         <div class="container">
+            <?php if (!empty($message)): ?>
+                <div class="alert success">
+                    <?php echo htmlspecialchars($message); ?>
+                </div>
+            <?php endif; ?>
+            
+            <?php if (!empty($error)): ?>
+                <div class="alert error">
+                    <?php echo htmlspecialchars($error); ?>
+                </div>
+            <?php endif; ?>
+            
             <div class="settings-grid">
                 <div class="settings-sidebar">
                     <div class="settings-menu">
@@ -206,6 +247,7 @@ if (isset($_POST['upload_picture'])) {
                 </div>
                 
                 <div class="settings-main">
+                    <!-- Profile Picture Section -->
                     <div class="settings-card" id="profile-picture">
                         <div class="settings-header">
                             <h2><?php echo t('profile_picture'); ?></h2>
@@ -233,6 +275,84 @@ if (isset($_POST['upload_picture'])) {
                             </form>
                         </div>
                     </div>
+                    
+                    <!-- Profile Section -->
+                    <div class="settings-card" id="profile" style="display: none;">
+                        <div class="settings-header">
+                            <h2><?php echo t('profile'); ?></h2>
+                            <p><?php echo t('update_profile'); ?></p>
+                        </div>
+                        <form action="" method="post">
+                            <div class="form-group">
+                                <label for="first_name"><?php echo t('first_name'); ?></label>
+                                <input type="text" id="first_name" name="first_name" value="<?php echo htmlspecialchars($firstName); ?>" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="last_name"><?php echo t('last_name'); ?></label>
+                                <input type="text" id="last_name" name="last_name" value="<?php echo htmlspecialchars($lastName); ?>" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email"><?php echo t('email'); ?></label>
+                                <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone"><?php echo t('phone'); ?></label>
+                                <input type="tel" id="phone" name="phone" value="<?php echo htmlspecialchars($phone); ?>">
+                            </div>
+                            <div class="form-group">
+                                <label for="city"><?php echo t('city'); ?></label>
+                                <input type="text" id="city" name="city" value="<?php echo htmlspecialchars($city); ?>">
+                            </div>
+                            <div class="form-group">
+                                <label for="country"><?php echo t('country'); ?></label>
+                                <input type="text" id="country" name="country" value="<?php echo htmlspecialchars($country); ?>">
+                            </div>
+                            <button type="submit" name="update_user_info"><?php echo t('save_changes'); ?></button>
+                        </form>
+                    </div>
+                    
+                    <!-- Language & Theme Section -->
+                    <div class="settings-card" id="language-theme" style="display: none;">
+                        <div class="settings-header">
+                            <h2><?php echo t('language_and_theme'); ?></h2>
+                            <p>Personnalisez l'apparence et la langue</p>
+                        </div>
+                        <form action="" method="post">
+                            <div class="form-group">
+                                <label for="language"><?php echo t('language'); ?></label>
+                                <select id="language" name="language">
+                                    <option value="fr" <?php echo ($language == 'fr') ? 'selected' : ''; ?>>Français</option>
+                                    <option value="en" <?php echo ($language == 'en') ? 'selected' : ''; ?>>English</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="theme"><?php echo t('theme'); ?></label>
+                                <select id="theme" name="theme">
+                                    <option value="light" <?php echo ($theme == 'light') ? 'selected' : ''; ?>><?php echo t('light'); ?></option>
+                                    <option value="dark" <?php echo ($theme == 'dark') ? 'selected' : ''; ?>><?php echo t('dark'); ?></option>
+                                </select>
+                            </div>
+                            <button type="submit" name="update_preferences"><?php echo t('save_changes'); ?></button>
+                        </form>
+                    </div>
+                    
+                    <!-- User Information Section -->
+                    <div class="settings-card" id="user-info" style="display: none;">
+                        <div class="settings-header">
+                            <h2><?php echo t('user_information'); ?></h2>
+                            <p>Gérez vos informations personnelles</p>
+                        </div>
+                        <p>Cette section est intégrée avec le profil ci-dessus.</p>
+                    </div>
+                    
+                    <!-- Notifications Section -->
+                    <div class="settings-card" id="notifications" style="display: none;">
+                        <div class="settings-header">
+                            <h2><?php echo t('notifications'); ?></h2>
+                            <p>Gérez vos préférences de notification</p>
+                        </div>
+                        <p>Fonctionnalité de notifications à venir.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -242,6 +362,57 @@ if (isset($_POST['upload_picture'])) {
         function toggleProfileDropdown() {
             document.getElementById("profileDropdown").classList.toggle("show");
         }
+        
+        // Tab switching functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all menu items and content sections
+            const menuItems = document.querySelectorAll('.settings-menu-item');
+            const contentSections = document.querySelectorAll('.settings-card');
+            
+            // Add click event to each menu item
+            menuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Get target section
+                    const targetId = this.getAttribute('href').substring(1);
+                    
+                    // Hide all sections
+                    contentSections.forEach(section => {
+                        section.style.display = 'none';
+                    });
+                    
+                    // Show target section
+                    document.getElementById(targetId).style.display = 'block';
+                    
+                    // Update active menu item
+                    menuItems.forEach(menuItem => {
+                        menuItem.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+            });
+            
+            // Show the first section by default
+            if (window.location.hash) {
+                const hash = window.location.hash.substring(1);
+                const targetSection = document.getElementById(hash);
+                if (targetSection) {
+                    contentSections.forEach(section => {
+                        section.style.display = 'none';
+                    });
+                    targetSection.style.display = 'block';
+                    
+                    // Update active menu item
+                    menuItems.forEach(menuItem => {
+                        menuItem.classList.remove('active');
+                        if (menuItem.getAttribute('href').substring(1) === hash) {
+                            menuItem.classList.add('active');
+                        }
+                    });
+                }
+            }
+        });
         
         // Close dropdown when clicking outside
         window.onclick = function(event) {
@@ -278,6 +449,24 @@ if (isset($_POST['upload_picture'])) {
         
         .settings-content {
             padding: 40px 0;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .alert.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
         
         .settings-grid {
@@ -351,22 +540,29 @@ if (isset($_POST['upload_picture'])) {
             color: #ddd;
         }
         
-        .input-group {
+        .input-group, .form-group {
             margin-bottom: 15px;
             text-align: left;
         }
         
-        .input-group label {
+        .input-group label, .form-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
         
-        .input-group input[type="file"] {
+        .input-group input[type="file"], .form-group input, .form-group select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
         }
         
         button {

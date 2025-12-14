@@ -11,6 +11,17 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'agent') {
 
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
+$agentId = $_SESSION['user_id'];
+
+// Fetch appointments for this agent
+try {
+    $stmt = $pdo->prepare("SELECT a.*, u.username as client_name, p.address as property_address, p.city as property_city FROM appointments a LEFT JOIN users u ON a.client_id = u.id LEFT JOIN properties p ON a.property_id = p.id WHERE a.agent_id = ? ORDER BY a.appointment_date ASC, a.appointment_time ASC");
+    $stmt->execute([$agentId]);
+    $appointments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $appointments = [];
+    error_log("Error fetching appointments: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
@@ -44,56 +55,32 @@ $userRole = $_SESSION['role'];
             </div>
             
             <div class="appointments-list">
-                <div class="appointment-card">
-                    <div class="appointment-date">
-                        <div class="date-day">15</div>
-                        <div class="date-month">DEC</div>
-                    </div>
-                    <div class="appointment-details">
-                        <h3>Visite de Propriété</h3>
-                        <p class="appointment-property">123 Main Street, Paris</p>
-                        <p class="appointment-client">Avec Marie Dubois</p>
-                        <p class="appointment-time"><i class="fas fa-clock"></i> 14:30 - 15:30</p>
-                    </div>
-                    <div class="appointment-actions">
-                        <button class="btn-small btn-secondary">Modifier</button>
-                        <button class="btn-small btn-danger">Annuler</button>
-                    </div>
-                </div>
-                
-                <div class="appointment-card">
-                    <div class="appointment-date">
-                        <div class="date-day">18</div>
-                        <div class="date-month">DEC</div>
-                    </div>
-                    <div class="appointment-details">
-                        <h3>Signature de Contrat</h3>
-                        <p class="appointment-property">45 City Avenue, Lyon</p>
-                        <p class="appointment-client">Avec Jean Martin</p>
-                        <p class="appointment-time"><i class="fas fa-clock"></i> 10:00 - 11:00</p>
-                    </div>
-                    <div class="appointment-actions">
-                        <button class="btn-small btn-secondary">Modifier</button>
-                        <button class="btn-small btn-danger">Annuler</button>
-                    </div>
-                </div>
-                
-                <div class="appointment-card">
-                    <div class="appointment-date">
-                        <div class="date-day">22</div>
-                        <div class="date-month">DEC</div>
-                    </div>
-                    <div class="appointment-details">
-                        <h3>Discussion de Projet</h3>
-                        <p class="appointment-property">Consultation en ligne</p>
-                        <p class="appointment-client">Avec Pierre Lambert</p>
-                        <p class="appointment-time"><i class="fas fa-clock"></i> 16:00 - 17:00</p>
-                    </div>
-                    <div class="appointment-actions">
-                        <button class="btn-small btn-secondary">Modifier</button>
-                        <button class="btn-small btn-danger">Annuler</button>
-                    </div>
-                </div>
+                <?php if (empty($appointments)): ?>
+                    <p>Vous n'avez pas encore de rendez-vous programmés.</p>
+                <?php else: ?>
+                    <?php foreach ($appointments as $appointment): ?>
+                        <div class="appointment-card">
+                            <div class="appointment-date">
+                                <div class="date-day"><?= date('d', strtotime($appointment['appointment_date'])) ?></div>
+                                <div class="date-month"><?= strtoupper(date('M', strtotime($appointment['appointment_date']))) ?></div>
+                            </div>
+                            <div class="appointment-details">
+                                <h3><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $appointment['appointment_type']))) ?></h3>
+                                <?php if (!empty($appointment['property_address'])): ?>
+                                    <p class="appointment-property"><?= htmlspecialchars($appointment['property_address'] . ', ' . $appointment['property_city']) ?></p>
+                                <?php else: ?>
+                                    <p class="appointment-property">Consultation en ligne</p>
+                                <?php endif; ?>
+                                <p class="appointment-client">Avec <?= htmlspecialchars($appointment['client_name']) ?></p>
+                                <p class="appointment-time"><i class="fas fa-clock"></i> <?= date('H:i', strtotime($appointment['appointment_time'])) ?> - <?= date('H:i', strtotime($appointment['appointment_time']) + 3600) ?></p>
+                            </div>
+                            <div class="appointment-actions">
+                                <button class="btn-small btn-secondary">Modifier</button>
+                                <button class="btn-small btn-danger">Annuler</button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </section>

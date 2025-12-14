@@ -182,10 +182,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['upload_picture'])) {
                     <span>ImmoHome</span>
                 </div>
                 <ul class="nav-links">
-                    <li><a href="seller_dashboard.php">Dashboard</a></li>
-                    <li><a href="my_properties.php">Mes Propriétés</a></li>
-                    <li><a href="add_property.php">Ajouter</a></li>
-                    <li><a href="my_sales.php">Mes Ventes</a></li>
                     <li><a href="favorites.php">Favoris</a></li>
                 </ul>
                 <div class="nav-actions">
@@ -201,9 +197,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['upload_picture'])) {
                             <div class="profile-name"><?php echo htmlspecialchars($username); ?></div>
                             <div class="profile-role"><?php echo ucfirst($userRole); ?></div>
                         </div>
-                        <a href="account_settings.php"><i class="fas fa-cog"></i> Paramètres</a>
-                        <a href="account_settings.php#language-theme"><i class="fas fa-paint-brush"></i> Langue & Thème</a>
-                        <a href="account_settings.php#user-info"><i class="fas fa-address-card"></i> Informations Utilisateur</a>
                         <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
                     </div>
                 </div>

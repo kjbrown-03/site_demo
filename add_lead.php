@@ -11,6 +11,49 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'agent') {
 
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
+$agentId = $_SESSION['user_id'];
+
+// Handle form submission
+$message = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $firstName = $_POST['firstName'] ?? '';
+    $lastName = $_POST['lastName'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $phone = $_POST['phone'] ?? '';
+    $interest = $_POST['interest'] ?? '';
+    $budget = $_POST['budget'] ?? null;
+    $location = $_POST['location'] ?? '';
+    $notes = $_POST['notes'] ?? '';
+    
+    // Validate required fields
+    if (empty($firstName) || empty($lastName) || empty($email) || empty($interest)) {
+        $message = 'Veuillez remplir tous les champs obligatoires.';
+    } else {
+        try {
+            // Insert lead into database
+            $stmt = $pdo->prepare("INSERT INTO leads (agent_id, first_name, last_name, email, phone, interest, budget, location_preference, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $agentId,
+                $firstName,
+                $lastName,
+                $email,
+                $phone,
+                $interest,
+                $budget ?: null,
+                $location,
+                $notes
+            ]);
+            
+            $message = 'Prospect ajouté avec succès!';
+            // Redirect to leads page after successful submission
+            header('Location: client_leads.php');
+            exit();
+        } catch (PDOException $e) {
+            error_log("Error saving lead: " . $e->getMessage());
+            $message = 'Erreur lors de l\'ajout du prospect. Veuillez réessayer.';
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -38,7 +81,10 @@ $userRole = $_SESSION['role'];
         <div class="container">
             <div class="form-container">
                 <h2>Informations sur le Prospect</h2>
-                <form id="leadForm">
+                <?php if (!empty($message)): ?>
+                    <div class="alert alert-<?php echo strpos($message, 'succès') !== false ? 'success' : 'error'; ?>"><?= htmlspecialchars($message) ?></div>
+                <?php endif; ?>
+                <form id="leadForm" method="POST">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="firstName">Prénom</label>
@@ -187,6 +233,24 @@ $userRole = $_SESSION['role'];
             color: #1A1A1A;
         }
         
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
         .form-group {
             margin-bottom: 20px;
         }
@@ -250,12 +314,8 @@ $userRole = $_SESSION['role'];
     </style>
     
     <script>
-        document.getElementById('leadForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            // In a real application, this would submit the form data
-            alert('Prospect ajouté avec succès!');
-            window.location.href = 'client_leads.php';
-        });
+        // Form validation is handled server-side
+        // This script can be used for client-side enhancements if needed
         
         
     </script>

@@ -11,6 +11,51 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'agent') {
 
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
+$agentId = $_SESSION['user_id'];
+
+// Handle form submission
+$message = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $propertyType = $_POST['propertyType'] ?? '';
+    $price = $_POST['price'] ?? '';
+    $address = $_POST['address'] ?? '';
+    $city = $_POST['city'] ?? '';
+    $postalCode = $_POST['postalCode'] ?? '';
+    $bedrooms = $_POST['bedrooms'] ?? null;
+    $bathrooms = $_POST['bathrooms'] ?? null;
+    $area = $_POST['area'] ?? null;
+    $description = $_POST['description'] ?? '';
+    
+    // Validate required fields
+    if (empty($propertyType) || empty($price) || empty($address) || empty($city) || empty($postalCode)) {
+        $message = 'Veuillez remplir tous les champs obligatoires.';
+    } else {
+        try {
+            // Insert property into database
+            $stmt = $pdo->prepare("INSERT INTO properties (agent_id, title, description, price, address, city, type, bedrooms, bathrooms, area_sqm) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $agentId,
+                $address . ', ' . $city, // title
+                $description,
+                $price,
+                $address,
+                $city,
+                $propertyType,
+                $bedrooms ?: null,
+                $bathrooms ?: null,
+                $area ?: null
+            ]);
+            
+            $message = 'Annonce publiée avec succès!';
+            // Redirect to listings page after successful submission
+            header('Location: my_listings.php');
+            exit();
+        } catch (PDOException $e) {
+            error_log("Error saving property: " . $e->getMessage());
+            $message = 'Erreur lors de la publication de l\'annonce. Veuillez réessayer.';
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -38,7 +83,10 @@ $userRole = $_SESSION['role'];
         <div class="container">
             <div class="form-container">
                 <h2>Informations sur l'Annonce</h2>
-                <form id="listingForm">
+                <?php if (!empty($message)): ?>
+                    <div class="alert alert-<?php echo strpos($message, 'succès') !== false ? 'success' : 'error'; ?>"><?= htmlspecialchars($message) ?></div>
+                <?php endif; ?>
+                <form id="listingForm" method="POST">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="propertyType">Type de Propriété</label>
@@ -200,6 +248,24 @@ $userRole = $_SESSION['role'];
             color: #1A1A1A;
         }
         
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
         .form-group {
             margin-bottom: 20px;
         }
@@ -269,12 +335,8 @@ $userRole = $_SESSION['role'];
     </style>
     
     <script>
-        document.getElementById('listingForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            // In a real application, this would submit the form data
-            alert('Annonce publiée avec succès!');
-            window.location.href = 'my_listings.php';
-        });
+        // Form validation is handled server-side
+        // This script can be used for client-side enhancements if needed
         
         
     </script>

@@ -11,18 +11,35 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'agent') {
 
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
+$agentId = $_SESSION['user_id'];
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         if ($_POST['action'] === 'delete' && isset($_POST['property_id'])) {
-            // In a real application, you would delete the property from the database
-            $message = "Annonce supprimée avec succès!";
+            try {
+                $stmt = $pdo->prepare("DELETE FROM properties WHERE id = ? AND agent_id = ?");
+                $stmt->execute([$_POST['property_id'], $agentId]);
+                $message = "Annonce supprimée avec succès!";
+            } catch (PDOException $e) {
+                $message = "Erreur lors de la suppression de l'annonce.";
+                error_log("Error deleting property: " . $e->getMessage());
+            }
         } elseif ($_POST['action'] === 'edit' && isset($_POST['property_id'])) {
             // In a real application, you would update the property in the database
             $message = "Annonce mise à jour avec succès!";
         }
     }
+}
+
+// Fetch properties for this agent
+try {
+    $stmt = $pdo->prepare("SELECT * FROM properties WHERE agent_id = ? ORDER BY created_at DESC");
+    $stmt->execute([$agentId]);
+    $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $properties = [];
+    error_log("Error fetching properties: " . $e->getMessage());
 }
 ?>
 
@@ -63,76 +80,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             
             <div class="properties-grid" id="propertiesGrid">
-                <!-- Properties will be loaded dynamically -->
-                <div class="property-card">
-                    <div class="property-image" style="background-image: url('https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800');">
-                        <span class="property-badge active">Active</span>
-                        <div class="property-favorite">
-                            <i class="fas fa-heart"></i>
-                        </div>
-                    </div>
-                    <div class="property-info">
-                        <div class="property-price">€485,000</div>
-                        <div class="property-address">123 Main Street, Paris</div>
-                        <div class="property-details">
-                            <div class="property-detail">
-                                <i class="fas fa-bed"></i>
-                                <span>4 chambres</span>
+                <?php if (empty($properties)): ?>
+                    <p>Vous n'avez pas encore d'annonces.</p>
+                <?php else: ?>
+                    <?php foreach ($properties as $property): ?>
+                        <div class="property-card">
+                            <div class="property-image" style="background-image: url('https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800');">
+                                <span class="property-badge <?= htmlspecialchars($property['status']) ?>"><?= ucfirst(str_replace('_', ' ', $property['status'])) ?></span>
+                                <div class="property-favorite">
+                                    <i class="fas fa-heart"></i>
+                                </div>
                             </div>
-                            <div class="property-detail">
-                                <i class="fas fa-bath"></i>
-                                <span>2 salles de bain</span>
-                            </div>
-                            <div class="property-detail">
-                                <i class="fas fa-ruler-combined"></i>
-                                <span>1883 m²</span>
-                            </div>
-                        </div>
-                        <div class="property-actions">
-                            <button class="btn-small btn-secondary" onclick="editProperty(1)">Modifier</button>
-                            <form method="POST" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette annonce?')">
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="property_id" value="1">
-                                <button type="submit" class="btn-small btn-danger">Supprimer</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="property-card">
-                    <div class="property-image" style="background-image: url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800');">
-                        <span class="property-badge pending">En Attente</span>
-                        <div class="property-favorite">
-                            <i class="far fa-heart"></i>
-                        </div>
-                    </div>
-                    <div class="property-info">
-                        <div class="property-price">€325,000</div>
-                        <div class="property-address">45 City Avenue, Lyon</div>
-                        <div class="property-details">
-                            <div class="property-detail">
-                                <i class="fas fa-bed"></i>
-                                <span>3 chambres</span>
-                            </div>
-                            <div class="property-detail">
-                                <i class="fas fa-bath"></i>
-                                <span>2 salles de bain</span>
-                            </div>
-                            <div class="property-detail">
-                                <i class="fas fa-ruler-combined"></i>
-                                <span>1440 m²</span>
+                            <div class="property-info">
+                                <div class="property-price">€<?= number_format($property['price'], 0, ',', ' ') ?></div>
+                                <div class="property-address"><?= htmlspecialchars($property['address'] . ', ' . $property['city']) ?></div>
+                                <div class="property-details">
+                                    <div class="property-detail">
+                                        <i class="fas fa-bed"></i>
+                                        <span><?= $property['bedrooms'] ?> chambres</span>
+                                    </div>
+                                    <div class="property-detail">
+                                        <i class="fas fa-bath"></i>
+                                        <span><?= $property['bathrooms'] ?> salles de bain</span>
+                                    </div>
+                                    <div class="property-detail">
+                                        <i class="fas fa-ruler-combined"></i>
+                                        <span><?= $property['area_sqm'] ?> m²</span>
+                                    </div>
+                                </div>
+                                <div class="property-actions">
+                                    <button class="btn-small btn-secondary" onclick="editProperty(<?= $property['id'] ?>)">Modifier</button>
+                                    <form method="POST" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette annonce?')">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="property_id" value="<?= $property['id'] ?>">
+                                        <button type="submit" class="btn-small btn-danger">Supprimer</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
-                        <div class="property-actions">
-                            <button class="btn-small btn-secondary" onclick="editProperty(2)">Modifier</button>
-                            <form method="POST" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette annonce?')">
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="property_id" value="2">
-                                <button type="submit" class="btn-small btn-danger">Supprimer</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </section>

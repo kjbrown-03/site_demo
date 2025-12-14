@@ -72,6 +72,23 @@ CREATE TABLE IF NOT EXISTS appointments (
     FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE SET NULL
 );
 
+-- Create leads table
+CREATE TABLE IF NOT EXISTS leads (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    agent_id INT NOT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100),
+    phone VARCHAR(20),
+    interest ENUM('house', 'apartment', 'rent', 'investment', 'other') NOT NULL,
+    budget DECIMAL(12, 2),
+    location_preference VARCHAR(100),
+    notes TEXT,
+    status ENUM('active', 'pending', 'converted', 'archived') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (agent_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Insert sample users
 INSERT INTO users (username, email, password, role) VALUES
 ('john_doe', 'john@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'buyer'),

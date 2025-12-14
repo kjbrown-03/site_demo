@@ -11,6 +11,16 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'seller') {
 
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
+
+// Fetch seller's properties from database
+try {
+    $stmt = $pdo->prepare("SELECT * FROM properties WHERE agent_id = ? ORDER BY created_at DESC");
+    $stmt->execute([$_SESSION['user_id']]);
+    $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch(PDOException $e) {
+    $properties = [];
+    error_log("Error fetching properties: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
@@ -91,67 +101,62 @@ $userRole = $_SESSION['role'];
             
             <div class="properties-grid" id="propertiesGrid">
                 <!-- Properties will be loaded dynamically -->
-                <div class="property-card">
-                    <div class="property-image" style="background-image: url('https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800');">
-                        <span class="property-badge active">En Vente</span>
-                        <div class="property-favorite">
-                            <i class="fas fa-heart"></i>
+                <?php if (!empty($properties)): ?>
+                    <?php foreach ($properties as $property): ?>
+                        <div class="property-card">
+                            <div class="property-image" style="background-image: url('<?php echo htmlspecialchars(isset($property['image_url']) ? $property['image_url'] : 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800'); ?>');">
+                                <span class="property-badge <?php echo $property['status'] == 'sold' ? 'sold' : 'active'; ?>">
+                                    <?php echo ucfirst(str_replace('_', ' ', $property['status'])); ?>
+                                </span>
+                                <div class="property-favorite">
+                                    <i class="<?php echo $property['status'] == 'sold' ? 'far' : 'fas'; ?> fa-heart"></i>
+                                </div>
+                            </div>
+                            <div class="property-info">
+                                <div class="property-price">€<?php echo number_format($property['price'], 0, ',', ' '); ?></div>
+                                <div class="property-address"><?php echo htmlspecialchars($property['address'] . ', ' . $property['city']); ?></div>
+                                <div class="property-details">
+                                    <?php if (isset($property['bedrooms']) && $property['bedrooms'] > 0): ?>
+                                        <div class="property-detail">
+                                            <i class="fas fa-bed"></i>
+                                            <span><?php echo $property['bedrooms']; ?> chambres</span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if (isset($property['bathrooms']) && $property['bathrooms'] > 0): ?>
+                                        <div class="property-detail">
+                                            <i class="fas fa-bath"></i>
+                                            <span><?php echo $property['bathrooms']; ?> salles de bain</span>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if (isset($property['area_sqm']) && $property['area_sqm'] > 0): ?>
+                                        <div class="property-detail">
+                                            <i class="fas fa-ruler-combined"></i>
+                                            <span><?php echo $property['area_sqm']; ?> m²</span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="property-actions">
+                                    <?php if ($property['status'] != 'sold'): ?>
+                                        <button class="btn-small btn-secondary" onclick="editProperty(<?php echo $property['id']; ?>)">Modifier</button>
+                                        <button class="btn-small btn-danger" onclick="deleteProperty(<?php echo $property['id']; ?>)">Retirer</button>
+                                    <?php else: ?>
+                                        <button class="btn-small btn-secondary" disabled>Modifier</button>
+                                        <button class="btn-small btn-danger" onclick="archiveProperty(<?php echo $property['id']; ?>)">Archiver</button>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="no-results">
+                        <i class="fas fa-home fa-3x"></i>
+                        <h3>Aucune propriété trouvée</h3>
+                        <p>Vous n'avez pas encore ajouté de propriétés.</p>
+                        <button class="btn-primary" onclick="location.href='add_property.php'">
+                            <i class="fas fa-plus"></i> Ajouter une Propriété
+                        </button>
                     </div>
-                    <div class="property-info">
-                        <div class="property-price">€485,000</div>
-                        <div class="property-address">123 Main Street, Paris</div>
-                        <div class="property-details">
-                            <div class="property-detail">
-                                <i class="fas fa-bed"></i>
-                                <span>4 chambres</span>
-                            </div>
-                            <div class="property-detail">
-                                <i class="fas fa-bath"></i>
-                                <span>2 salles de bain</span>
-                            </div>
-                            <div class="property-detail">
-                                <i class="fas fa-ruler-combined"></i>
-                                <span>1883 m²</span>
-                            </div>
-                        </div>
-                        <div class="property-actions">
-                            <button class="btn-small btn-secondary">Modifier</button>
-                            <button class="btn-small btn-danger">Retirer</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="property-card">
-                    <div class="property-image" style="background-image: url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800');">
-                        <span class="property-badge sold">Vendue</span>
-                        <div class="property-favorite">
-                            <i class="far fa-heart"></i>
-                        </div>
-                    </div>
-                    <div class="property-info">
-                        <div class="property-price">€325,000</div>
-                        <div class="property-address">45 City Avenue, Lyon</div>
-                        <div class="property-details">
-                            <div class="property-detail">
-                                <i class="fas fa-bed"></i>
-                                <span>3 chambres</span>
-                            </div>
-                            <div class="property-detail">
-                                <i class="fas fa-bath"></i>
-                                <span>2 salles de bain</span>
-                            </div>
-                            <div class="property-detail">
-                                <i class="fas fa-ruler-combined"></i>
-                                <span>1440 m²</span>
-                            </div>
-                        </div>
-                        <div class="property-actions">
-                            <button class="btn-small btn-secondary" disabled>Modifier</button>
-                            <button class="btn-small btn-danger">Archiver</button>
-                        </div>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -417,6 +422,30 @@ $userRole = $_SESSION['role'];
     <script>
         function toggleProfileDropdown() {
             document.getElementById("profileDropdown").classList.toggle("show");
+        }
+        
+        // Property action functions
+        function editProperty(propertyId) {
+            // Redirect to edit property page
+            window.location.href = 'add_property.php?id=' + propertyId;
+        }
+        
+        function deleteProperty(propertyId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette propriété ?')) {
+                // In a real implementation, this would send a request to delete the property
+                alert('Propriété supprimée avec succès. ID: ' + propertyId);
+                // Refresh the page to show updated list
+                location.reload();
+            }
+        }
+        
+        function archiveProperty(propertyId) {
+            if (confirm('Êtes-vous sûr de vouloir archiver cette propriété ?')) {
+                // In a real implementation, this would send a request to archive the property
+                alert('Propriété archivée avec succès. ID: ' + propertyId);
+                // Refresh the page to show updated list
+                location.reload();
+            }
         }
         
         // Close dropdown when clicking outside
