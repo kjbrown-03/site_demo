@@ -1,0 +1,274 @@
+warning: in the working copy of 'includes/common_header.php', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'includes/language_handler.php', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'includes/navigation.php', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'index.php', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/account_settings.php b/account_settings.php[m
+[1mdeleted file mode 100644[m
+[1mindex 3239466..0000000[m
+[1m--- a/account_settings.php[m
+[1m+++ /dev/null[m
+[36m@@ -1,899 +0,0 @@[m
+[31m-session_start();[m
+[31m-require_once 'config.php';[m
+[31m-[m
+[31m-// Function to check if current page is active[m
+[31m-function isActivePage($page) {[m
+[31m-    $current_page = basename($_SERVER['PHP_SELF']);[m
+[31m-    return $current_page === $page;[m
+[31m-}[m
+[31m-[m
+[31m-// Check if user is logged in[m
+[31m-if (!isset($_SESSION['user_id'])) {[m
+[31m-    header('Location: login.php');[m
+[31m-    exit();[m
+[31m-}[m
+[31m-[m
+[31m-// Handle form submission[m
+[31m-$message = '';[m
+[31m-$error = '';[m
+[31m-[m
+[31m-// Handle profile picture upload[m
+[31m-if (isset($_POST['upload_picture'])) {[m
+[31m-    if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] == 0) {[m
+[31m-        $target_dir = "uploads/profile_pictures/";[m
+[31m-        // Create directory if it doesn't exist[m
+[31m-        if (!file_exists($target_dir)) {[m
+[31m-            mkdir($target_dir, 0777, true);[m
+[31m-        }[m
+[31m-        [m
+[31m-        $file_extension = strtolower(pathinfo($_FILES["profile_picture"]["name"], PATHINFO_EXTENSION));[m
+[31m-        $allowed_extensions = array("jpg", "jpeg", "png", "gif");[m
+[31m-        [m
+[31m-        // Check if file extension is allowed[m
+[31m-        if (in_array($file_extension, $allowed_extensions)) {[m
+[31m-            // Generate unique filename[m
+[31m-            $new_filename = uniqid() . '_' . $_SESSION['user_id'] . '.' . $file_extension;[m
+[31m-            $target_file = $target_dir . $new_filename;[m
+[31m-            [m
+[31m-            // Move uploaded file[m
+[31m-            if (move_uploaded_file($_FILES["profile_picture"]["tmp_name"], $target_file)) {[m
+[31m-                try {[m
+[31m-                    // Update user profile picture in database[m
+[31m-                    $stmt = $pdo->prepare("UPDATE users SET profile_picture = ? WHERE id = ?");[m
+[31m-                    $stmt->execute([$target_file, $_SESSION['user_id']]);[m
+[31m-                    $message = 'Profile picture updated successfully!';[m
+[31m-                } catch(PDOException $e) {[m
+[31m-                    $error = 'Error updating profile picture: ' . $e->getMessage();[m
+[31m-                }[m
+[31m-            } else {[m
+[31m-                $error = 'Error uploading file.';[m
+[31m-            }[m
+[31m-        } else {[m
+[31m-            $error = 'Invalid file type. Please upload JPG, JPEG, PNG, or GIF files only.';[m
+[31m-        }[m
+[31m-    } else {[m
+[31m-        $error = 'Please select a file to upload.';[m
+[31m-    }[m
+[31m-}[m
+[31m-[m
+[31m-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['upload_picture'])) {[m
+[31m-    try {[m
+[31m-        // Update user profile information[m
+[31m-        $firstName = isset($_POST['firstName']) ? $_POST['firstName'] : '';[m
+[31m-        $lastName = isset($_POST['lastName']) ? $_POST['lastName'] : '';[m
+[31m-        $email = isset($_POST['email']) ? $_POST['email'] : '';[m
+[31m-        $phone = isset($_POST['phone']) ? $_POST['phone'] : '';[m
+[31m-        $city = isset($_POST['city']) ? $_POST['city'] : '';[m
+[31m-        $country = isset($_POST['country']) ? $_POST['country'] : '';[m
+[31m-        $language = isset($_POST['language']) ? $_POST['language'] : 'fr';[m
+[31m-        $theme = isset($_POST['theme']) ? $_POST['theme'] : 'light';[m
+[31m-        $emailNotifications = isset($_POST['email-notifications']) ? 1 : 0;[m
+[31m-        $searchAlerts = isset($_POST['search-alerts']) ? 1 : 0;[m
+[31m-        $newsletter = isset($_POST['newsletter']) ? 1 : 0;[m
+[31m-        [m
+[31m-        // Update user information in database[m
+[31m-        $stmt = $pdo->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, phone = ?, city = ?, country = ?, language_preference = ?, theme_preference = ?, email_notifications = ?, search_alerts = ?, newsletter = ? WHERE id = ?");[m
+[31m-        $stmt->execute([$firstName, $lastName, $email, $phone, $city, $country, $language, $theme, $emailNotifications, $searchAlerts, $newsletter, $_SESSION['user_id']]);[m
+[31m-        [m
+[31m-        // Update session language/theme if changed[m
+[31m-        if ($language !== $_SESSION['language']) {[m
+[31m-            $_SESSION['language'] = $language;[m
+[31m-        }[m
+[31m-        if ($theme !== $_SESSION['theme']) {[m
+[31m-            $_SESSION['theme'] = $theme;[m
+[31m-        }[m
+[31m-        [m
+[31m-        $message = 'Account updated successfully!';[m
+[31m-    } catch(PDOException $e) {[m
+[31m-        $error = 'Error updating account: ' . $e->getMessage();[m
+[31m-    }[m
+[31m-}[m
+[31m-[m
+[31m-// Fetch current user information[m
+[31m-try {[m
+[31m-    $stmt = $pdo->prepare("SELECT first_name, last_name, email, phone, city, country, language_preference, theme_preference, email_notifications, search_alerts, newsletter, profile_picture FROM users WHERE id = ?");[m
+[31m-    $stmt->execute([$_SESSION['user_id']]);[m
+[31m-    $user = $stmt->fetch(PDO::FETCH_ASSOC);[m
+[31m-    [m
+[31m-    // Set variables for form population[m
+[31m-    $firstName = isset($user['first_name']) ? $user['first_name'] : '';[m
+[31m-    $lastName = isset($user['last_name']) ? $user['last_name'] : '';[m
+[31m-    $email = isset($user['email']) ? $user['email'] : '';[m
+[31m-    $phone = isset($user['phone']) ? $user['phone'] : '';[m
+[31m-    $city = isset($user['city']) ? $user['city'] : '';[m
+[31m-    $country = isset($user['country']) ? $user['country'] : '';[m
+[31m-    $languagePreference = isset($user['language_preference']) ? $user['language_preference'] : 'fr';[m
+[31m-    $themePreference = isset($user['theme_preference']) ? $user['theme_preference'] : 'light';[m
+[31m-    $emailNotifications = isset($user['email_notifications']) ? $user['email_notifications'] : 1;[m
+[31m-    $searchAlerts = isset($user['search_alerts']) ? $user['search_alerts'] : 1;[m
+[31m-    $newsletter = isset($user['newsletter']) ? $user['newsletter'] : 0;[m
+[31m-    $profilePicture = isset($user['profile_picture']) ? $user['profile_picture'] : '';[m
+[31m-} catch(PDOException $e) {[m
+[31m-    $error = "Error fetching user information: " . $e->getMessage();[m
+[31m-    $firstName = $lastName = $email = $phone = $city = $country = '';[m
+[31m-    $languagePreference = 'fr';[m
+[31m-    $themePreference = 'light';[m
+[31m-    $emailNotifications = $searchAlerts = 1;[m
+[31m-    $newsletter = 0;[m
+[31m-    $profilePicture = '';[m
+[31m-}[m
+[31m-[m
+[31m-$username = $_SESSION['username'];[m
+[31m-$userRole = $_SESSION['role'];[m
+[31m-[m
+[31m-// Simple translation function[m
+[31m-function t($key) {[m
+[31m-    $translations = [[m
+[31m-        'fr' => [[m
+[31m-            'account_settings' => 'Paramètres du compte',[m
+[31m-            'personalize_experience' => 'Personnalisez votre expérience',[m
+[31m-            'profile' => 'Profil',[m
+[31m-            'security' => 'Sécurité',[m
+[31m-            'notifications' => 'Notifications',[m
+[31m-            'favorites' => 'Favoris',[m
+[31m-            'billing' => 'Facturation',[m
+[31m-            'update_profile' => 'Mettre à jour le profil',[m
+[31m-            'first_name' => 'Prénom',[m
+[31m-            'last_name' => 'Nom',[m
+[31m-            'email' => 'Adresse Email',[m
+[31m-            'phone' => 'Numéro de Téléphone',[m
+[31m-            'city' => 'Ville',[m
+[31m-            'country' => 'Pays',[m
+[31m-            'language' => 'Langue',[m
+[31m-            'theme' => 'Thème',[m
+[31m-            'light_theme' => 'Clair',[m
+[31m-            'dark_theme' => 'Sombre',[m
+[31m-            'english' => 'Anglais',[m
+[31m-            'french' => 'Français',[m
+[31m-            'cancel' => 'Annuler',[m
+[31m-            'save_changes' => 'Enregistrer les modifications',[m
+[31m-            'preferences' => 'Préférences',[m
+[31m-            'email_notifications' => 'Notifications par Email',[m
+[31m-            'search_alerts' => 'Alertes de Recherche',[m
+[31m-            'newsletter' => 'Newsletter',[m
+[31m-            'receive_important_emails' => 'Recevoir des notifications importantes par email',[m
+[31m-            'receive_property_alerts' => 'Recevoir des alertes pour les nouvelles propriétés correspondant à vos recherches',[m
+[31m-            'receive_monthly_newsletter' => 'Recevoir notre newsletter mensuelle avec les dernières tendances immobilières',[m
+[31m-            'profile_picture' => 'Photo de Profil',[m
+[31m-            'change_your_profile_picture' => 'Changez votre photo de profil',[m
+[31m-            'no_profile_picture' => 'Aucune photo de profil',[m
+[31m-            'select_new_picture' => 'Sélectionner une nouvelle photo',[m
+[31m-            'supported_formats' => 'Formats supportés: JPG, JPEG, PNG, GIF',[m
+[31m-            'upload_picture' => 'Télécharger la photo',[m
+[31m-            'language_and_theme' => 'Langue et Thème',[m
+[31m-            'customize_interface' => 'Personnalisez l\'interface',[m
+[31m-            'user_information' => 'Informations Utilisateur',[m
+[31m-            'manage_personal_details' => 'Gérez vos informations personnelles',[m
+[31m-            'manage_notification_preferences' => 'Gérez vos préférences de notification',[m
+[31m-            'settings' => 'Paramètres',[m
+[31m-            'user_information' => 'Informations Utilisateur',[m
+[31m-            'logout' => 'Déconnexion'[m
+[31m-        ],[m
+[31m-        'en' => [[m
+[31m-            'account_settings' => 'Account Settings',[m
+[31m-            'personalize_experience' => 'Personalize your experience',[m
+[31m-            'profile' => 'Profile',[m
+[31m-            'security' => 'Security',[m
+[31m-            'notifications' => 'Notifications',[m
+[31m-            'favorites' => 'Favorites',[m
+[31m-            'billing' => 'Billing',[m
+[31m-            'update_profile' => 'Update Profile',[m
+[31m-            'first_name' => 'First Name',[m
+[31m-            'last_name' => 'Last Name',[m
+[31m-            'email' => 'Email Address',[m
+[31m-            'phone' => 'Phone Number',[m
+[31m-            'city' => 'City',[m
+[31m-            'country' => 'Country',[m
+[31m-            'language' => 'Language',[m
+[31m-            'theme' => 'Theme',[m
+[31m-            'light_theme' => 'Light',[m
+[31m-            'dark_theme' => 'Dark',[m
+[31m-            'english' => 'English',[m
+[31m-            'french' => 'French',[m
+[31m-            'cancel' => 'Cancel',[m
+[31m-            'save_changes' => 'Save Changes',[m
+[31m-            'preferences' => 'Preferences',[m
+[31m-            'email_notifications' => 'Email Notifications',[m
+[31m-            'search_alerts' => 'Search Alerts',[m
+[31m-            'newsletter' => 'Newsletter',[m
+[31m-            'receive_important_emails' => 'Receive important notifications by email',[m
+[31m-            'receive_property_alerts' => 'Receive alerts for new properties matching your searches',[m
+[31m-            'receive_monthly_newsletter' => 'Receive our monthly newsletter with the latest real estate trends',[m
+[31m-            'profile_picture' => 'Profile Picture',[m
+[31m-            'change_your_profile_picture' => 'Change your profile picture',[m
+[31m-            'no_profile_picture' => 'No profile picture',[m
+[31m-            'select_new_picture' => 'Select new picture',[m
+[31m-            'supported_formats' => 'Supported formats: JPG, JPEG, PNG, GIF',[m
+[31m-            'upload_picture' => 'Upload Picture',[m
+[31m-            'language_and_theme' => 'Language and Theme',[m
+[31m-            'customize_interface' => 'Customize interface',[m
+[31m-            'user_information' => 'User Information',[m
+[31m-            'manage_personal_details' => 'Manage your personal details',[m
+[31m-            'manage_notification_preferences' => 'Manage your notification preferences',[m
+[31m-            'settings' => 'Settings',[m
+[31m-            'user_information' => 'User Information',[m
+[31m-            'logout' => 'Logout'[m
+[31m-        ][m
+[31m-    ];[m
+[31m-    [m
+[31m-    $currentLang = isset($_SESSION['language']) ? $_SESSION['language'] : 'fr';[m
+[31m-    if (isset($translations[$currentLang][$key])) {[m
+[31m-        return $translations[$currentLang][$key];[m
+[31m-    }[m
+[31m-    return $key;[m
+[31m-}[m
+[31m-?>[m
+[31m-<!DOCTYPE html>[m
+[31m-<html lang="<?php echo isset($_SESSION['language']) ? $_SESSION['language'] : 'fr'; ?>" class="<?php echo isset($_SESSION['theme']) ? $_SESSION['theme'] : 'light'; ?>">[m
+[31m-<head>[m
+[31m-    <meta charset="UTF-8">[m
+[31m-    <meta name="viewport" content="width=device-width, initial-scale=1.0">[m
+[31m-    <title><?php echo t('account_settings'); ?> - ImmoHome</title>[m
+[31m-    <link rel="stylesheet" href="style.css">[m
+[31m-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">[m
+[31m-</head>[m
+[31m-<body class="<?php echo isset($_SESSION['theme']) ? $_SESSION['theme'] : 'light'; ?>">[m
+[31m-    <header>[m
+[31m-        <nav class="navbar">[m
+[31m-            <div class="container">[m
+[31m-                <div class="logo" onclick="location.href='index.php'">[m
+[31m-                    <i class="fas fa-home"></i>[m
+[31m-                    <span>ImmoHome</span>[m
+[31m-                </div>[m
+[31m-                <?php if ($userRole === 'buyer'): ?>[m
+[31m-                <ul class="nav-links">[m
+[31m-                    <li><a href="buyer_dashboard.php" class="<?php echo isActivePage('buyer_dashboard.php') ? 'active' : ''; ?>">Dashboard</a></li>[m
+[31m-                    <li><a href="search_properties.php" class="<?php echo isActivePage('search_properties.php') ? 'active' : ''; ?>"><?php echo t('search'); ?></a></li>[m
+[31m-                    <li><a href="my_orders.php" class="<?php echo isActivePage('my_orders.php') ? 'active' : ''; ?>">Mes Commandes</a></li>[m
+[31m-                    <li><a href="favorites.php" class="<?php echo isActivePage('favorites.php') ? 'active' : ''; ?>"><?php echo t('favorites'); ?></a></li>[m
+[31m-                </ul>[m
+[31m-                <?php elseif ($userRole === 'seller'): ?>[m
+[31m-                <ul class="nav-links">[m
+[31m-                    <li><a href="seller_dashboard.php" class="<?php echo isActivePage('seller_dashboard.php') ? 'active' : ''; ?>">Dashboard</a></li>[m
+[31m-                    <li><a href="my_properties.php" class="<?php echo isActivePage('my_properties.php') ? 'active' : ''; ?>">Mes Propriétés</a></li>[m
+[31m-                    <li><a href="add_property.php" class="<?php echo isActivePage('add_property.php') ? 'active' : ''; ?>">Ajouter</a></li>[m
+[31m-                    <li><a href="my_sales.php" class="<?php echo isActivePage('my_sales.php') ? 'active' : ''; ?>">Mes Ventes</a></li>[m
+[31m-                    <li><a href="favorites.php" class="<?php echo isActivePage('favorites.php') ? 'active' : ''; ?>"><?php echo t('favorites'); ?></a></li>[m
+[31m-                </ul>[m
+[31m-                <?php elseif ($userRole === 'agent'): ?>[m
+[31m-                <ul class="nav-links">[m
+[31m-                    <li><a href="agent_dashboard.php" class="<?php echo isActivePage('agent_dashboard.php') ? 'active' : ''; ?>">Dashboard</a></li>[m
+[31m-                    <li><a href="my_listings.php" class="<?php echo isActivePage('my_listings.php') ? 'active' : ''; ?>">Mes Annonces</a></li>[m
+[31m-                    <li><a href="client_leads.php" class="<?php echo isActivePage('client_leads.php') ? 'active' : ''; ?>">Prospects</a></li>[m
+[31m-                    <li><a href="appointments.php" class="<?php echo isActivePage('appointments.php') ? 'active' : ''; ?>">Rendez-vous</a></li>[m
+[31m-                    <li><a href="favorites.php" class="<?php echo isActivePage('favorites.php') ? 'active' : ''; ?>"><?php ec

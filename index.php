@@ -13,7 +13,7 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ImmoHome - <?php echo t('welcome'); ?></title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="assets/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="<?php echo $currentTheme; ?>">
@@ -25,11 +25,11 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
                     <span>ImmoHome</span>
                 </div>
                 <ul class="nav-links">
-                    <li><a href="buy.php" onclick="redirectTo('buy.php'); return false;"><?php echo t('buy'); ?></a></li>
-                    <li><a href="rent.php" onclick="redirectTo('rent.php'); return false;"><?php echo t('rent'); ?></a></li>
-                    <li><a href="sell.php" onclick="redirectTo('sell.php'); return false;"><?php echo t('sell'); ?></a></li>
-                    <li><a href="agents.php" onclick="redirectTo('agents.php'); return false;"><?php echo t('agents'); ?></a></li>
-                    <li><a href="financing.php" onclick="redirectTo('financing.php'); return false;"><?php echo t('financing'); ?></a></li>
+                    <li><a href="pages/buy.php" onclick="redirectTo('pages/buy.php'); return false;"><?php echo t('buy'); ?></a></li>
+                    <li><a href="pages/rent.php" onclick="redirectTo('pages/rent.php'); return false;"><?php echo t('rent'); ?></a></li>
+                    <li><a href="pages/sell.php" onclick="redirectTo('pages/sell.php'); return false;"><?php echo t('sell'); ?></a></li>
+                    <li><a href="pages/agents.php" onclick="redirectTo('pages/agents.php'); return false;"><?php echo t('agents'); ?></a></li>
+                    <li><a href="pages/financing.php" onclick="redirectTo('pages/financing.php'); return false;"><?php echo t('financing'); ?></a></li>
                     <li class="dropdown">
                         <a href="#" class="dropbtn"><i class="fas fa-ellipsis-v"></i></a>
                         <div class="dropdown-content">
@@ -44,9 +44,9 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
                                 <a href="?theme=dark"><?php echo t('dark_theme'); ?></a>
                             </div>
                             <?php if ($isLoggedIn): ?>
-                                <a href="favorites.php"><?php echo t('favorites'); ?></a>
+                                <a href="user/favorites.php"><?php echo t('favorites'); ?></a>
                             <?php else: ?>
-                                <a href="login.php"><?php echo t('favorites'); ?></a>
+                                <a href="auth/login.php"><?php echo t('favorites'); ?></a>
                             <?php endif; ?>
                         </div>
                     </li>
@@ -54,9 +54,9 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
                 <div class="nav-actions">
                     <?php if ($isLoggedIn): ?>
                         <span class="user-welcome"><?php echo t('hello'); ?>, <?php echo htmlspecialchars($username); ?>!</span>
-                        <a href="logout.php" class="btn-secondary"><?php echo t('logout'); ?></a>
+                        <a href="auth/logout.php" class="btn-secondary"><?php echo t('logout'); ?></a>
                     <?php else: ?>
-                        <button class="btn-primary" onclick="location.href='login.php'"><?php echo t('login'); ?></button>
+                        <button class="btn-primary" onclick="location.href='auth/login.php'"><?php echo t('login'); ?></button>
                     <?php endif; ?>
                 </div>
             </div>
@@ -159,7 +159,7 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
     <section class="services-section">
         <div class="container">
             <div class="services-grid">
-                <div class="service-card" onclick="redirectTo('buy.php')">
+                <div class="service-card" onclick="redirectTo('pages/buy.php')">
                     <div class="service-image" style="background-image: url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600');">
                         <div class="service-overlay"></div>
                     </div>
@@ -171,7 +171,7 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
                     </div>
                 </div>
 
-                <div class="service-card" onclick="redirectTo('financing.php')">
+                <div class="service-card" onclick="redirectTo('pages/financing.php')">
                     <div class="service-image" style="background-image: url('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600');">
                         <div class="service-overlay"></div>
                     </div>
@@ -183,7 +183,7 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
                     </div>
                 </div>
 
-                <div class="service-card" onclick="redirectTo('sell.php')">
+                <div class="service-card" onclick="redirectTo('pages/sell.php')">
                     <div class="service-image" style="background-image: url('https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=600');">
                         <div class="service-overlay"></div>
                     </div>
@@ -240,17 +240,17 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
                 <div class="footer-col">
                     <h4><?php echo t('buy'); ?></h4>
                     <ul>
-                        <li><a href="buy.php"><?php echo t('houses'); ?></a></li>
-                        <li><a href="buy.php"><?php echo t('apartments'); ?></a></li>
-                        <li><a href="buy.php"><?php echo t('villas'); ?></a></li>
-                        <li><a href="buy.php"><?php echo t('lands'); ?></a></li>
+                        <li><a href="pages/buy.php"><?php echo t('houses'); ?></a></li>
+                        <li><a href="pages/buy.php"><?php echo t('apartments'); ?></a></li>
+                        <li><a href="pages/buy.php"><?php echo t('villas'); ?></a></li>
+                        <li><a href="pages/buy.php"><?php echo t('lands'); ?></a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
                     <h4><?php echo t('services'); ?></h4>
                     <ul>
                         <li><a href="#"><?php echo t('free_estimation'); ?></a></li>
-                        <li><a href="financing.php"><?php echo t('financing'); ?></a></li>
+                        <li><a href="pages/financing.php"><?php echo t('financing'); ?></a></li>
                         <li><a href="#"><?php echo t('insurance'); ?></a></li>
                         <li><a href="#"><?php echo t('moving'); ?></a></li>
                     </ul>
@@ -278,7 +278,7 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
                 window.location.href = page;
             <?php else: ?>
                 if (confirm("<?php echo t('login_required'); ?>")) {
-                    window.location.href = 'login.php';
+                    window.location.href = 'auth/login.php';
                 }
             <?php endif; ?>
         }
@@ -296,7 +296,7 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
             const bedrooms = document.getElementById('bedrooms').value;
             const bathrooms = document.getElementById('bathrooms').value;
             
-            let url = 'search_properties.php?';
+            let url = 'pages/search_properties.php?';
             const params = [];
             
             if (type) params.push('type=' + type);
@@ -397,17 +397,40 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
     <script>
         // Load trending properties from database
         document.addEventListener('DOMContentLoaded', function() {
-            fetch('get_trending_properties.php')
+            fetch('api/get_trending_properties.php')
                 .then(response => response.json())
                 .then(properties => {
                     const grid = document.getElementById('propertiesGrid');
                     grid.innerHTML = '';
                     
-                    // Get favorites from localStorage
+                    // Get favorites - sync with database if logged in
                     let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
                     
+                    <?php if ($isLoggedIn): ?>
+                    // Sync favorites from database on page load
+                    fetch('api/get_favorites.php')
+                        .then(response => response.json())
+                        .then(dbFavorites => {
+                            const dbFavoriteIds = dbFavorites.map(p => p.id);
+                            localStorage.setItem('favorites', JSON.stringify(dbFavoriteIds));
+                            favorites = dbFavoriteIds;
+                            renderProperties(properties, dbFavoriteIds);
+                        })
+                        .catch(() => {
+                            renderProperties(properties, favorites);
+                        });
+                    
+                    function renderProperties(properties, favoriteIds) {
+                        const grid = document.getElementById('propertiesGrid');
+                        grid.innerHTML = '';
+                    <?php else: ?>
+                    function renderProperties(properties, favoriteIds) {
+                        const grid = document.getElementById('propertiesGrid');
+                        grid.innerHTML = '';
+                    <?php endif; ?>
+                    
                     properties.forEach(property => {
-                        const isFavorite = favorites.includes(property.id);
+                        const isFavorite = favoriteIds.includes(property.id);
                         const card = document.createElement('div');
                         card.className = 'property-card';
                         card.innerHTML = `
@@ -442,13 +465,7 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
                         card.addEventListener('click', (e) => {
                             // Don't trigger when clicking on the favorite button
                             if (!e.target.closest('.property-favorite')) {
-                                alert(`<?php echo t('property_details'); ?>:
-<?php echo t('price'); ?>: ${parseInt(property.price).toLocaleString('<?php echo $currentLang === 'fr' ? 'fr-FR' : 'en-US'; ?>')} €
-<?php echo t('address'); ?>: ${property.address}
-<?php echo t('bedrooms'); ?>: ${property.beds}
-<?php echo t('bathrooms'); ?>: ${property.baths}
-<?php echo t('area'); ?>: ${property.sqft} m²
-<?php echo t('agent'); ?>: ${property.agent}`);
+                                window.location.href = 'pages/property_detail.php?id=' + property.id;
                             }
                         });
                         
@@ -462,6 +479,11 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
                             toggleFavorite(this);
                         });
                     });
+                    }
+                    
+                    <?php if (!$isLoggedIn): ?>
+                    renderProperties(properties, favorites);
+                    <?php endif; ?>
                 })
                 .catch(error => {
                     console.error('<?php echo t('error_loading_properties'); ?>:', error);
@@ -469,22 +491,60 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
         });
         
         // Toggle favorite status
-        function toggleFavorite(button) {
+        async function toggleFavorite(button) {
             const propertyId = parseInt(button.getAttribute('data-property-id'));
             let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const isActive = button.classList.contains('active');
             
-            if (button.classList.contains('active')) {
-                // Remove from favorites
+            <?php if ($isLoggedIn): ?>
+            // Sync with database if logged in
+            try {
+                const endpoint = isActive ? 'api/remove_favorite.php' : 'api/add_favorite.php';
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ property_id: propertyId })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (isActive) {
+                        favorites = favorites.filter(id => id !== propertyId);
+                        button.classList.remove('active');
+                    } else {
+                        favorites.push(propertyId);
+                        button.classList.add('active');
+                    }
+                    localStorage.setItem('favorites', JSON.stringify(favorites));
+                } else {
+                    console.error('Error toggling favorite:', result.message);
+                }
+            } catch (error) {
+                console.error('Error toggling favorite:', error);
+                // Fallback to localStorage only
+                if (isActive) {
+                    favorites = favorites.filter(id => id !== propertyId);
+                    button.classList.remove('active');
+                } else {
+                    favorites.push(propertyId);
+                    button.classList.add('active');
+                }
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+            }
+            <?php else: ?>
+            // Only use localStorage if not logged in
+            if (isActive) {
                 favorites = favorites.filter(id => id !== propertyId);
                 button.classList.remove('active');
             } else {
-                // Add to favorites
                 favorites.push(propertyId);
                 button.classList.add('active');
             }
-            
-            // Save to localStorage
             localStorage.setItem('favorites', JSON.stringify(favorites));
+            <?php endif; ?>
         }
     </script>
     

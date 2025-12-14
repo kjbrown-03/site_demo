@@ -1,8 +1,8 @@
 <?php
 // Database configuration
 define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_USER', 'Eddy');
+define('DB_PASS', 'Daddiesammy1$');
 define('DB_NAME', 'immohome');
 
 try {

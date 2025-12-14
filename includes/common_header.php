@@ -1,6 +1,6 @@
 <?php
 // Common header functionality
-require_once 'includes/language_handler.php';
+require_once dirname(__DIR__) . '/includes/language_handler.php';
 
 // Get user info if logged in
 $isLoggedIn = isset($_SESSION['user_id']);
@@ -11,15 +11,15 @@ $userRole = $isLoggedIn ? $_SESSION['role'] : '';
 function getUserDashboardLink($role) {
     switch ($role) {
         case 'buyer':
-            return 'buyer_dashboard.php';
+            return '../dashboards/buyer_dashboard.php';
         case 'seller':
-            return 'seller_dashboard.php';
+            return '../dashboards/seller_dashboard.php';
         case 'agent':
-            return 'agent_dashboard.php';
+            return '../dashboards/agent_dashboard.php';
         case 'admin':
-            return 'admin_dashboard.php';
+            return '../dashboards/admin_dashboard.php';
         default:
-            return 'index.php';
+            return '../index.php';
     }
 }
 

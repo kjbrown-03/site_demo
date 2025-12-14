@@ -4,39 +4,39 @@
 function renderNavigation($currentPage = '', $username = '', $userRole = '') {
     $navLinks = [
         'buyer' => [
-            ['url' => 'buyer_dashboard.php', 'label' => 'Dashboard', 'active' => $currentPage === 'buyer_dashboard.php'],
-            ['url' => 'search_properties.php', 'label' => 'Rechercher', 'active' => $currentPage === 'search_properties.php'],
-            ['url' => 'my_orders.php', 'label' => 'Mes Commandes', 'active' => $currentPage === 'my_orders.php']
+            ['url' => '../dashboards/buyer_dashboard.php', 'label' => 'Dashboard', 'active' => $currentPage === 'buyer_dashboard.php'],
+            ['url' => '../pages/search_properties.php', 'label' => 'Rechercher', 'active' => $currentPage === 'search_properties.php'],
+            ['url' => '../user/my_orders.php', 'label' => 'Mes Commandes', 'active' => $currentPage === 'my_orders.php']
         ],
         'seller' => [
-            ['url' => 'seller_dashboard.php', 'label' => 'Dashboard', 'active' => $currentPage === 'seller_dashboard.php'],
-            ['url' => 'my_properties.php', 'label' => 'Mes Propriétés', 'active' => $currentPage === 'my_properties.php'],
-            ['url' => 'add_property.php', 'label' => 'Ajouter', 'active' => $currentPage === 'add_property.php'],
-            ['url' => 'my_sales.php', 'label' => 'Mes Ventes', 'active' => $currentPage === 'my_sales.php']
+            ['url' => '../dashboards/seller_dashboard.php', 'label' => 'Dashboard', 'active' => $currentPage === 'seller_dashboard.php'],
+            ['url' => '../user/my_properties.php', 'label' => 'Mes Propriétés', 'active' => $currentPage === 'my_properties.php'],
+            ['url' => '../pages/add_property.php', 'label' => 'Ajouter', 'active' => $currentPage === 'add_property.php'],
+            ['url' => '../user/my_sales.php', 'label' => 'Mes Ventes', 'active' => $currentPage === 'my_sales.php']
         ],
         'agent' => [
-            ['url' => 'agent_dashboard.php', 'label' => 'Dashboard', 'active' => $currentPage === 'agent_dashboard.php'],
-            ['url' => 'my_listings.php', 'label' => 'Mes Annonces', 'active' => $currentPage === 'my_listings.php'],
-            ['url' => 'client_leads.php', 'label' => 'Prospects', 'active' => $currentPage === 'client_leads.php'],
-            ['url' => 'appointments.php', 'label' => 'Rendez-vous', 'active' => $currentPage === 'appointments.php']
+            ['url' => '../dashboards/agent_dashboard.php', 'label' => 'Dashboard', 'active' => $currentPage === 'agent_dashboard.php'],
+            ['url' => '../agent/my_listings.php', 'label' => 'Mes Annonces', 'active' => $currentPage === 'my_listings.php'],
+            ['url' => '../agent/client_leads.php', 'label' => 'Prospects', 'active' => $currentPage === 'client_leads.php'],
+            ['url' => '../agent/appointments.php', 'label' => 'Rendez-vous', 'active' => $currentPage === 'appointments.php']
         ],
         'admin' => [
-            ['url' => 'admin_dashboard.php', 'label' => 'Dashboard', 'active' => $currentPage === 'admin_dashboard.php'],
-            ['url' => 'buy.php', 'label' => 'Acheter', 'active' => $currentPage === 'buy.php'],
-            ['url' => 'rent.php', 'label' => 'Louer', 'active' => $currentPage === 'rent.php'],
-            ['url' => 'sell.php', 'label' => 'Vendre', 'active' => $currentPage === 'sell.php'],
-            ['url' => 'agents.php', 'label' => 'Agents', 'active' => $currentPage === 'agents.php'],
-            ['url' => 'financing.php', 'label' => 'Financement', 'active' => $currentPage === 'financing.php']
+            ['url' => '../dashboards/admin_dashboard.php', 'label' => 'Dashboard', 'active' => $currentPage === 'admin_dashboard.php'],
+            ['url' => '../pages/buy.php', 'label' => 'Acheter', 'active' => $currentPage === 'buy.php'],
+            ['url' => '../pages/rent.php', 'label' => 'Louer', 'active' => $currentPage === 'rent.php'],
+            ['url' => '../pages/sell.php', 'label' => 'Vendre', 'active' => $currentPage === 'sell.php'],
+            ['url' => '../pages/agents.php', 'label' => 'Agents', 'active' => $currentPage === 'agents.php'],
+            ['url' => '../pages/financing.php', 'label' => 'Financement', 'active' => $currentPage === 'financing.php']
         ]
     ];
 
     $settingsLinks = [
-        ['url' => 'account_settings.php', 'label' => 'Langue & Thème'],
-        ['url' => 'account_settings.php', 'label' => 'Informations Utilisateur']
+        ['url' => '../user/account_settings.php', 'label' => 'Langue & Thème'],
+        ['url' => '../user/account_settings.php', 'label' => 'Informations Utilisateur']
     ];
 
     $commonLinks = [
-        ['url' => 'favorites.php', 'label' => 'Favoris', 'active' => $currentPage === 'favorites.php']
+        ['url' => '../user/favorites.php', 'label' => 'Favoris', 'active' => $currentPage === 'favorites.php']
     ];
 
     // Determine which navigation links to show based on user role
@@ -47,7 +47,7 @@ function renderNavigation($currentPage = '', $username = '', $userRole = '') {
 
     echo '<nav class="navbar">';
     echo '    <div class="container">';
-    echo '        <div class="logo" onclick="location.href=\'index.php\'">';
+    echo '        <div class="logo" onclick="location.href=\'../index.php\'">';
     echo '            <i class="fas fa-home"></i>';
     echo '            <span>ImmoHome</span>';
     echo '        </div>';
@@ -76,7 +76,7 @@ function renderNavigation($currentPage = '', $username = '', $userRole = '') {
         echo '            <span class="user-welcome">' . ($userRole === 'admin' ? 'Admin: ' : 'Bonjour, ') . htmlspecialchars($username) . '!</span>';
     }
     
-    echo '            <a href="logout.php" class="btn-secondary">Déconnexion</a>';
+    echo '            <a href="../auth/logout.php" class="btn-secondary">Déconnexion</a>';
     echo '        </div>';
     echo '    </div>';
     echo '</nav>';
