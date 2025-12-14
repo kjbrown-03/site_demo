@@ -331,7 +331,17 @@ $translations = [
         'enter_area' => 'Entrez la surface',
         'select_bedrooms' => 'Sélectionnez les chambres',
         'select_bathrooms' => 'Sélectionnez les salles de bain',
-        'submit_listing' => 'Soumettre l\'Annonce'
+        'profile_picture' => 'Photo de Profil',
+        'change_your_profile_picture' => 'Changez votre photo de profil',
+        'no_profile_picture' => 'Aucune photo de profil',
+        'select_new_picture' => 'Sélectionner une nouvelle photo',
+        'supported_formats' => 'Formats supportés: JPG, JPEG, PNG, GIF',
+        'upload_picture' => 'Télécharger la photo',
+        'language_and_theme' => 'Langue & Thème',
+        'user_information' => 'Informations Utilisateur',
+        'customize_interface' => 'Personnalisez l\'interface',
+        'manage_personal_details' => 'Gérez vos informations personnelles',
+        'manage_notification_preferences' => 'Gérez vos préférences de notification'
     ],
     'en' => [
         'welcome' => 'Welcome',
@@ -482,7 +492,17 @@ $translations = [
         'enter_area' => 'Enter area',
         'select_bedrooms' => 'Select bedrooms',
         'select_bathrooms' => 'Select bathrooms',
-        'submit_listing' => 'Submit Listing'
+        'profile_picture' => 'Profile Picture',
+        'change_your_profile_picture' => 'Change your profile picture',
+        'no_profile_picture' => 'No profile picture',
+        'select_new_picture' => 'Select a new picture',
+        'supported_formats' => 'Supported formats: JPG, JPEG, PNG, GIF',
+        'upload_picture' => 'Upload Picture',
+        'language_and_theme' => 'Language & Theme',
+        'user_information' => 'User Information',
+        'customize_interface' => 'Customize the interface',
+        'manage_personal_details' => 'Manage your personal details',
+        'manage_notification_preferences' => 'Manage your notification preferences'
     ]
 ];
 
