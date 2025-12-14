@@ -12,6 +12,33 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'seller') {
 
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
+
+// Fetch seller's properties from database
+try {
+    $stmt = $pdo->prepare("SELECT * FROM properties WHERE agent_id = ? ORDER BY created_at DESC LIMIT 3");
+    $stmt->execute([$_SESSION['user_id']]);
+    $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch(PDOException $e) {
+    $properties = [];
+    error_log("Error fetching properties: " . $e->getMessage());
+}
+
+// Fetch statistics
+try {
+    // Count properties
+    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM properties WHERE agent_id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $propertiesCount = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+    
+    // Count sales
+    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM orders WHERE property_id IN (SELECT id FROM properties WHERE agent_id = ?)");
+    $stmt->execute([$_SESSION['user_id']]);
+    $salesCount = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+} catch(PDOException $e) {
+    $propertiesCount = 0;
+    $salesCount = 0;
+    error_log("Error fetching statistics: " . $e->getMessage());
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $htmlLang; ?>" class="<?php echo $currentTheme; ?>">
@@ -156,43 +183,6 @@ $userRole = $_SESSION['role'];
     </footer>
 
     <script>
-        // Sample properties data
-        const properties = [
-            {
-                id: 1,
-                price: 485000,
-                beds: 4,
-                baths: 2,
-                sqft: 1883,
-                address: "123 Main Street, Paris",
-                image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800",
-                status: "Active",
-                agent: "Sophie Martin"
-            },
-            {
-                id: 2,
-                price: 325000,
-                beds: 3,
-                baths: 2,
-                sqft: 1440,
-                address: "45 City Avenue, Lyon",
-                image: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800",
-                status: "Under Offer",
-                agent: "Jean Dupont"
-            },
-            {
-                id: 3,
-                price: 629000,
-                beds: 5,
-                baths: 3,
-                sqft: 2819,
-                address: "78 Hill Road, Nice",
-                image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
-                status: "New",
-                agent: "Marie Leclerc"
-            }
-        ];
-
         function formatPrice(price) {
             return new Intl.NumberFormat('fr-FR', {
                 style: 'currency',
@@ -204,9 +194,13 @@ $userRole = $_SESSION['role'];
         function createPropertyCard(property) {
             const card = document.createElement('div');
             card.className = 'property-card';
+            
+            // Use a default image if none is provided
+            const imageUrl = property.image_url || 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800';
+            
             card.innerHTML = `
-                <div class="property-image" style="background-image: url('${property.image}');">
-                    <span class="property-badge">${property.status}</span>
+                <div class="property-image" style="background-image: url('${imageUrl}');">
+                    <span class="property-badge">${property.status ? ucfirst(str_replace('_', ' ', property.status)) : 'Active'}</span>
                     <div class="property-favorite">
                         <i class="far fa-heart"></i>
                     </div>
@@ -214,21 +208,24 @@ $userRole = $_SESSION['role'];
                 <div class="property-info">
                     <div class="property-price">${formatPrice(property.price)}</div>
                     <div class="property-details">
+                        ${property.bedrooms ? `
                         <div class="property-detail">
                             <i class="fas fa-bed"></i>
-                            <span>${property.beds} bed</span>
-                        </div>
+                            <span>${property.bedrooms} bed</span>
+                        </div>` : ''}
+                        ${property.bathrooms ? `
                         <div class="property-detail">
                             <i class="fas fa-bath"></i>
-                            <span>${property.baths} bath</span>
-                        </div>
+                            <span>${property.bathrooms} bath</span>
+                        </div>` : ''}
+                        ${property.area_sqm ? `
                         <div class="property-detail">
                             <i class="fas fa-ruler-combined"></i>
-                            <span>${property.sqft} m²</span>
-                        </div>
+                            <span>${property.area_sqm} m²</span>
+                        </div>` : ''}
                     </div>
-                    <div class="property-address">${property.address}</div>
-                    <div class="property-meta">Agent: ${property.agent}</div>
+                    <div class="property-address">${property.address || property.city ? (property.address + (property.city ? ', ' + property.city : '')) : 'Address not available'}</div>
+                    <div class="property-meta">ID: ${property.id}</div>
                 </div>
             `;
 
@@ -247,9 +244,17 @@ $userRole = $_SESSION['role'];
         function renderProperties() {
             const propertiesGrid = document.getElementById('propertiesGrid');
             propertiesGrid.innerHTML = '';
-            properties.slice(0, 3).forEach(property => {
-                propertiesGrid.appendChild(createPropertyCard(property));
-            });
+            
+            // Get properties data from PHP
+            const phpProperties = <?php echo json_encode($properties); ?>;
+            
+            if (phpProperties && phpProperties.length > 0) {
+                phpProperties.forEach(property => {
+                    propertiesGrid.appendChild(createPropertyCard(property));
+                });
+            } else {
+                propertiesGrid.innerHTML = '<p>No properties found.</p>';
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {

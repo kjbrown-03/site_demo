@@ -11,6 +11,44 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'seller') {
 
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
+
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        $title = $_POST['title'] ?? '';
+        $description = $_POST['description'] ?? '';
+        $price = $_POST['price'] ?? 0;
+        $address = $_POST['address'] ?? '';
+        $city = $_POST['city'] ?? '';
+        $type = $_POST['propertyType'] ?? '';
+        $bedrooms = $_POST['bedrooms'] ?? 0;
+        $bathrooms = $_POST['bathrooms'] ?? 0;
+        $area_sqm = $_POST['area'] ?? 0;
+        
+        // Insert property into database (sellers use seller_id)
+        $stmt = $pdo->prepare("INSERT INTO properties (seller_id, title, description, price, address, city, type, bedrooms, bathrooms, area_sqm, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([
+            $_SESSION['user_id'],
+            $title,
+            $description,
+            $price,
+            $address,
+            $city,
+            $type,
+            $bedrooms,
+            $bathrooms,
+            $area_sqm,
+            'for_sale'
+        ]);
+        
+        // Redirect to my_properties page with success message
+        header('Location: my_properties.php?success=1');
+        exit();
+    } catch(PDOException $e) {
+        $error = "Error adding property: " . $e->getMessage();
+        error_log($error);
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -84,7 +122,14 @@ $userRole = $_SESSION['role'];
         <div class="container">
             <div class="form-container">
                 <h2><?php echo t('property_information'); ?></h2>
-                <form id="propertyForm" enctype="multipart/form-data">
+                
+                <?php if (isset($error)): ?>
+                    <div class="alert error">
+                        <?php echo htmlspecialchars($error); ?>
+                    </div>
+                <?php endif; ?>
+                
+                <form id="propertyForm" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="title"><?php echo t('title'); ?></label>
                         <input type="text" id="title" name="title" placeholder="<?php echo t('enter_title'); ?>" required>
@@ -250,6 +295,18 @@ $userRole = $_SESSION['role'];
             color: #1A1A1A;
         }
         
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert.error {
+            background: #FFEAEA;
+            color: #FF4757;
+            border: 1px solid #FFD1D1;
+        }
+        
         .form-group {
             margin-bottom: 20px;
         }
@@ -317,6 +374,7 @@ $userRole = $_SESSION['role'];
     </style>
     
     <script>
+<<<<<<< HEAD:pages/add_property.php
         // Image preview
         document.getElementById('image').addEventListener('change', function(e) {
             const file = e.target.files[0];

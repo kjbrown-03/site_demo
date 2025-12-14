@@ -382,11 +382,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     console.error('Error:', error);
                     alert('<?php echo t('error_deleting_property'); ?>');
                 });
-=======
+            }
+            
             // Close modal when clicking outside
             if (event.target.classList.contains('modal')) {
                 closeModal();
->>>>>>> 259a327966e2da47dd14790debb551044aab33de:my_listings.php
             }
         }
     </script>

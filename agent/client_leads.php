@@ -11,6 +11,17 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'agent') {
 
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
+$agentId = $_SESSION['user_id'];
+
+// Fetch leads for this agent
+try {
+    $stmt = $pdo->prepare("SELECT * FROM leads WHERE agent_id = ? ORDER BY created_at DESC");
+    $stmt->execute([$agentId]);
+    $leads = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $leads = [];
+    error_log("Error fetching leads: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
@@ -56,39 +67,25 @@ $userRole = $_SESSION['role'];
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Marie Dubois</td>
-                            <td>marie.dubois@email.com</td>
-                            <td>+33 1 23 45 67 89</td>
-                            <td>Maison à Paris</td>
-                            <td><span class="status-badge active">Actif</span></td>
-                            <td>
-                                <button class="btn-small btn-secondary">Voir</button>
-                                <button class="btn-small btn-danger">Archiver</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Jean Martin</td>
-                            <td>jean.martin@email.com</td>
-                            <td>+33 1 98 76 54 32</td>
-                            <td>Appartement Lyon</td>
-                            <td><span class="status-badge pending">En Attente</span></td>
-                            <td>
-                                <button class="btn-small btn-secondary">Voir</button>
-                                <button class="btn-small btn-danger">Archiver</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Pierre Lambert</td>
-                            <td>pierre.lambert@email.com</td>
-                            <td>+33 1 45 67 89 01</td>
-                            <td>Investissement</td>
-                            <td><span class="status-badge converted">Converti</span></td>
-                            <td>
-                                <button class="btn-small btn-secondary">Voir</button>
-                                <button class="btn-small btn-danger">Archiver</button>
-                            </td>
-                        </tr>
+                        <?php if (empty($leads)): ?>
+                            <tr>
+                                <td colspan="6" class="text-center">Vous n'avez pas encore de prospects.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($leads as $lead): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($lead['first_name'] . ' ' . $lead['last_name']) ?></td>
+                                    <td><?= htmlspecialchars($lead['email'] ?? '') ?></td>
+                                    <td><?= htmlspecialchars($lead['phone'] ?? '') ?></td>
+                                    <td><?= htmlspecialchars(ucfirst($lead['interest'])) ?></td>
+                                    <td><span class="status-badge <?= $lead['status'] ?>"><?= ucfirst($lead['status']) ?></span></td>
+                                    <td>
+                                        <button class="btn-small btn-secondary">Voir</button>
+                                        <button class="btn-small btn-danger">Archiver</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -196,6 +193,10 @@ $userRole = $_SESSION['role'];
             padding: 15px 20px;
             text-align: left;
             border-bottom: 1px solid #eee;
+        }
+        
+        .text-center {
+            text-align: center;
         }
         
         .leads-table th {

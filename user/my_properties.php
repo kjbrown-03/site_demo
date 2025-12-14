@@ -14,7 +14,7 @@ $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
 $userId = $_SESSION['user_id'];
 
-// Fetch user's properties
+// Fetch user's properties (sellers use seller_id)
 try {
     $stmt = $pdo->prepare("SELECT * FROM properties WHERE seller_id = ? ORDER BY created_at DESC");
     $stmt->execute([$userId]);
@@ -22,6 +22,8 @@ try {
 } catch(PDOException $e) {
     $properties = [];
     $error = "Error fetching properties: " . $e->getMessage();
+    error_log("Error fetching properties: " . $e->getMessage());
+>>>>>>> 62dd60a271a8eaf972d0aa88d338b43135820041:my_properties.php
 }
 ?>
 
@@ -106,25 +108,30 @@ try {
                     <?php foreach ($properties as $property): ?>
                         <div class="property-card">
                             <div class="property-image" style="background-image: url('<?php echo !empty($property['image_url']) ? '../' . htmlspecialchars($property['image_url']) : 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800'; ?>');">
-                                <span class="property-badge"><?php echo t($property['status']); ?></span>
+                                <span class="property-badge <?php echo $property['status'] == 'sold' ? 'sold' : 'active'; ?>">
+                                    <?php echo t($property['status']); ?>
+                                </span>
+                                <div class="property-favorite">
+                                    <i class="<?php echo $property['status'] == 'sold' ? 'far' : 'fas'; ?> fa-heart"></i>
+                                </div>
                             </div>
                             <div class="property-info">
                                 <div class="property-price"><?php echo number_format($property['price'], 0, ',', ' '); ?> €</div>
-                                <div class="property-address"><?php echo htmlspecialchars($property['address']); ?></div>
+                                <div class="property-address"><?php echo htmlspecialchars($property['address'] . (isset($property['city']) ? ', ' . $property['city'] : '')); ?></div>
                                 <div class="property-details">
-                                    <?php if ($property['bedrooms']): ?>
+                                    <?php if (isset($property['bedrooms']) && $property['bedrooms'] > 0): ?>
                                         <div class="property-detail">
                                             <i class="fas fa-bed"></i>
-                                            <span><?php echo $property['bedrooms']; ?> ch</span>
+                                            <span><?php echo $property['bedrooms']; ?> <?php echo t('beds_abbr'); ?></span>
                                         </div>
                                     <?php endif; ?>
-                                    <?php if ($property['bathrooms']): ?>
+                                    <?php if (isset($property['bathrooms']) && $property['bathrooms'] > 0): ?>
                                         <div class="property-detail">
                                             <i class="fas fa-bath"></i>
-                                            <span><?php echo $property['bathrooms']; ?> sdb</span>
+                                            <span><?php echo $property['bathrooms']; ?> <?php echo t('baths_abbr'); ?></span>
                                         </div>
                                     <?php endif; ?>
-                                    <?php if ($property['area_sqm']): ?>
+                                    <?php if (isset($property['area_sqm']) && $property['area_sqm'] > 0): ?>
                                         <div class="property-detail">
                                             <i class="fas fa-ruler-combined"></i>
                                             <span><?php echo $property['area_sqm']; ?> m²</span>
@@ -132,8 +139,13 @@ try {
                                     <?php endif; ?>
                                 </div>
                                 <div class="property-actions">
-                                    <button class="btn-small btn-secondary" onclick="location.href='../pages/edit_property.php?id=<?php echo $property['id']; ?>'"><?php echo t('edit'); ?></button>
-                                    <button class="btn-small btn-danger" onclick="deleteProperty(<?php echo $property['id']; ?>)"><?php echo t('delete'); ?></button>
+                                    <?php if ($property['status'] != 'sold'): ?>
+                                        <button class="btn-small btn-secondary" onclick="location.href='../pages/edit_property.php?id=<?php echo $property['id']; ?>'"><?php echo t('edit'); ?></button>
+                                        <button class="btn-small btn-danger" onclick="deleteProperty(<?php echo $property['id']; ?>)"><?php echo t('delete'); ?></button>
+                                    <?php else: ?>
+                                        <button class="btn-small btn-secondary" disabled><?php echo t('edit'); ?></button>
+                                        <button class="btn-small btn-danger" onclick="archiveProperty(<?php echo $property['id']; ?>)"><?php echo t('delete'); ?></button>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -144,9 +156,6 @@ try {
                         <button class="btn-primary" onclick="location.href='../pages/add_property.php'"><?php echo t('add_property'); ?></button>
                     </div>
                 <?php endif; ?>
-                
-                <div class="property-card">
-                    <div class="property-image" style="background-image: url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800');">
                         <span class="property-badge sold">Vendue</span>
                         <div class="property-favorite">
                             <i class="far fa-heart"></i>
@@ -175,6 +184,16 @@ try {
                         </div>
                     </div>
                 </div>
+=======
+                    <div class="no-results">
+                        <i class="fas fa-home fa-3x"></i>
+                        <h3>Aucune propriété trouvée</h3>
+                        <p>Vous n'avez pas encore ajouté de propriétés.</p>
+                        <button class="btn-primary" onclick="location.href='add_property.php'">
+                            <i class="fas fa-plus"></i> Ajouter une Propriété
+                        </button>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -440,6 +459,30 @@ try {
     <script>
         function toggleProfileDropdown() {
             document.getElementById("profileDropdown").classList.toggle("show");
+        }
+        
+        // Property action functions
+        function editProperty(propertyId) {
+            // Redirect to edit property page
+            window.location.href = 'add_property.php?id=' + propertyId;
+        }
+        
+        function deleteProperty(propertyId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette propriété ?')) {
+                // In a real implementation, this would send a request to delete the property
+                alert('Propriété supprimée avec succès. ID: ' + propertyId);
+                // Refresh the page to show updated list
+                location.reload();
+            }
+        }
+        
+        function archiveProperty(propertyId) {
+            if (confirm('Êtes-vous sûr de vouloir archiver cette propriété ?')) {
+                // In a real implementation, this would send a request to archive the property
+                alert('Propriété archivée avec succès. ID: ' + propertyId);
+                // Refresh the page to show updated list
+                location.reload();
+            }
         }
         
         // Close dropdown when clicking outside
