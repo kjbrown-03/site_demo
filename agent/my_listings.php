@@ -37,53 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <header>
-        <nav class="navbar">
-            <div class="container">
-                <div class="logo" onclick="location.href='../index.php'">
-                    <i class="fas fa-home"></i>
-                    <span>ImmoHome</span>
-                </div>
-                <ul class="nav-links">
-                    <li><a href="agent_dashboard.php">Dashboard</a></li>
-                    <li><a href="my_listings.php" class="active">Mes Annonces</a></li>
-                    <li><a href="client_leads.php">Prospects</a></li>
-                    <li><a href="appointments.php">Rendez-vous</a></li>
-                    <li><a href="favorites.php">Favoris</a></li>
-                </ul>
-                <div class="nav-actions">
-                    <div class="user-profile-dropdown">
-                        <div class="user-avatar" onclick="toggleProfileDropdown()">
-                            <?php
-                            // Fetch user profile picture
-                            try {
-                                $stmt = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
-                                $stmt->execute([$_SESSION['user_id']]);
-                                $user = $stmt->fetch(PDO::FETCH_ASSOC);
-                                $profilePicture = isset($user['profile_picture']) ? $user['profile_picture'] : '';
-                                
-                                if (!empty($profilePicture) && file_exists($profilePicture)) {
-                                    echo '<img src="' . $profilePicture . '" alt="Profile" class="profile-img">';
-                                } else {
-                                    echo '<i class="fas fa-user-circle fa-2x"></i>';
-                                }
-                            } catch(PDOException $e) {
-                                echo '<i class="fas fa-user-circle fa-2x"></i>';
-                            }
-                            ?>
-                        </div>
-                        <div class="profile-dropdown-content" id="profileDropdown">
-                            <div class="profile-info">
-                                <p><?php echo htmlspecialchars($username); ?></p>
-                            </div>
-                            <a href="account_settings.php"><i class="fas fa-cog"></i> Paramètres</a>
-                            <a href="account_settings.php#language-theme"><i class="fas fa-language"></i> Langue & Thème</a>
-                            <a href="account_settings.php#user-info"><i class="fas fa-user-edit"></i> Informations Utilisateur</a>
-                            <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        <?php renderNavigation('my_listings.php', $username, $userRole); ?>
     </header>
 
     <section class="dashboard-hero">
@@ -348,53 +302,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: white;
         }
         
-        /* User profile dropdown */
-        .user-profile-dropdown {
-            position: relative;
-            display: inline-block;
-        }
         
-        .user-avatar {
-            cursor: pointer;
-            color: #006AFF;
-        }
-        
-        .profile-dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: #f9f9f9;
-            min-width: 200px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-            border-radius: 8px;
-            top: 100%;
-        }
-        
-        .profile-dropdown-content.show {
-            display: block;
-        }
-        
-        .profile-info {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            font-weight: 500;
-        }
-        
-        .profile-dropdown-content a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .profile-dropdown-content a:hover {
-            background-color: #f1f1f1;
-            border-radius: 4px;
-            margin: 0 5px;
-        }
         
         /* Alert styles */
         .alert {
@@ -437,12 +345,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
     
     <script>
-        function toggleProfileDropdown() {
-            document.getElementById("profileDropdown").classList.toggle("show");
-        }
-        
-        // Close dropdown when clicking outside
+        // Close modal when clicking outside
         window.onclick = function(event) {
+<<<<<<< HEAD:agent/my_listings.php
             if (!event.target.matches('.user-avatar') && !event.target.matches('.user-avatar *')) {
                 var dropdowns = document.getElementsByClassName("profile-dropdown-content");
                 for (var i = 0; i < dropdowns.length; i++) {
@@ -477,6 +382,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     console.error('Error:', error);
                     alert('<?php echo t('error_deleting_property'); ?>');
                 });
+=======
+            // Close modal when clicking outside
+            if (event.target.classList.contains('modal')) {
+                closeModal();
+>>>>>>> 259a327966e2da47dd14790debb551044aab33de:my_listings.php
             }
         }
     </script>

@@ -13,7 +13,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'agent') {
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
 ?>
-
 <!DOCTYPE html>
 <html lang="<?php echo $htmlLang; ?>" class="<?php echo $currentTheme; ?>">
 <head>
@@ -25,37 +24,7 @@ $userRole = $_SESSION['role'];
 </head>
 <body class="<?php echo $currentTheme; ?>">
     <header>
-        <nav class="navbar">
-            <div class="container">
-                <div class="logo" onclick="location.href='../index.php'">
-                    <i class="fas fa-home"></i>
-                    <span>ImmoHome</span>
-                </div>
-                <ul class="nav-links">
-                    <li><a href="agent_dashboard.php" class="active"><?php echo t('dashboard'); ?></a></li>
-                    <li><a href="../agent/my_listings.php"><?php echo t('my_listings_title'); ?></a></li>
-                    <li><a href="../agent/client_leads.php"><?php echo t('prospects_title'); ?></a></li>
-                    <li><a href="../agent/appointments.php"><?php echo t('appointments_title'); ?></a></li>
-                    <li><a href="../user/favorites.php"><?php echo t('favorites'); ?></a></li>
-                </ul>
-                <div class="nav-actions">
-                    <div class="user-profile-dropdown">
-                        <div class="user-avatar" onclick="toggleProfileDropdown()">
-                            <i class="fas fa-user-circle fa-2x"></i>
-                        </div>
-                        <div class="profile-dropdown-content" id="profileDropdown">
-                            <div class="profile-info">
-                                <p><?php echo htmlspecialchars($username); ?></p>
-                            </div>
-                            <a href="../user/account_settings.php"><i class="fas fa-cog"></i> <?php echo t('settings'); ?></a>
-                            <a href="../user/account_settings.php#language-theme"><i class="fas fa-language"></i> <?php echo t('language_theme'); ?></a>
-                            <a href="../user/account_settings.php#user-info"><i class="fas fa-user-edit"></i> <?php echo t('user_information'); ?></a>
-                            <a href="../auth/logout.php"><i class="fas fa-sign-out-alt"></i> <?php echo t('logout'); ?></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        <?php renderNavigation('agent_dashboard.php', $username, $userRole); ?>
     </header>
 
     <section class="dashboard-hero">
@@ -286,23 +255,6 @@ $userRole = $_SESSION['role'];
         document.addEventListener('DOMContentLoaded', () => {
             renderProperties();
         });
-        
-        function toggleProfileDropdown() {
-            document.getElementById("profileDropdown").classList.toggle("show");
-        }
-        
-        // Close dropdown when clicking outside
-        window.onclick = function(event) {
-            if (!event.target.matches('.user-avatar') && !event.target.matches('.user-avatar *')) {
-                var dropdowns = document.getElementsByClassName("profile-dropdown-content");
-                for (var i = 0; i < dropdowns.length; i++) {
-                    var openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
-                }
-            }
-        }
     </script>
 
     <style>
@@ -387,54 +339,6 @@ $userRole = $_SESSION['role'];
         
         .recent-properties {
             padding: 80px 0;
-        }
-        
-        /* User profile dropdown */
-        .user-profile-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .user-avatar {
-            cursor: pointer;
-            color: #006AFF;
-        }
-        
-        .profile-dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: #f9f9f9;
-            min-width: 200px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-            border-radius: 8px;
-            top: 100%;
-        }
-        
-        .profile-dropdown-content.show {
-            display: block;
-        }
-        
-        .profile-info {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            font-weight: 500;
-        }
-        
-        .profile-dropdown-content a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .profile-dropdown-content a:hover {
-            background-color: #f1f1f1;
-            border-radius: 4px;
-            margin: 0 5px;
         }
         
         @media (max-width: 768px) {

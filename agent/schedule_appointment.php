@@ -11,6 +11,67 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'agent') {
 
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
+$agentId = $_SESSION['user_id'];
+
+// Handle form submission
+$message = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $clientId = $_POST['client'] ?? '';
+    $appointmentDate = $_POST['date'] ?? '';
+    $appointmentTime = $_POST['time'] ?? '';
+    $appointmentType = $_POST['type'] ?? '';
+    $propertyId = $_POST['property'] ?? null;
+    $location = $_POST['location'] ?? '';
+    $notes = $_POST['notes'] ?? '';
+    
+    // Validate required fields
+    if (empty($clientId) || empty($appointmentDate) || empty($appointmentTime) || empty($appointmentType)) {
+        $message = 'Veuillez remplir tous les champs obligatoires.';
+    } else {
+        try {
+            // Insert appointment into database
+            $stmt = $pdo->prepare("INSERT INTO appointments (agent_id, client_id, property_id, appointment_date, appointment_time, appointment_type, location, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $agentId,
+                $clientId,
+                $propertyId ?: null,
+                $appointmentDate,
+                $appointmentTime,
+                $appointmentType,
+                $location,
+                $notes
+            ]);
+            
+            $message = 'Rendez-vous planifié avec succès!';
+            // Redirect to appointments page after successful submission
+            header('Location: appointments.php');
+            exit();
+        } catch (PDOException $e) {
+            error_log("Error saving appointment: " . $e->getMessage());
+            $message = 'Erreur lors de la planification du rendez-vous. Veuillez réessayer.';
+        }
+    }
+}
+
+// Fetch clients (users with role 'buyer') from database
+try {
+    $clientsStmt = $pdo->prepare("SELECT id, username FROM users WHERE role = 'buyer' ORDER BY username");
+    $clientsStmt->execute();
+    $clients = $clientsStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $clients = [];
+    error_log("Error fetching clients: " . $e->getMessage());
+}
+
+// Fetch properties from database
+try {
+    $propertiesStmt = $pdo->prepare("SELECT id, address, city FROM properties ORDER BY city, address");
+    $propertiesStmt->execute();
+    $properties = $propertiesStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $properties = [];
+    error_log("Error fetching properties: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
@@ -24,53 +85,7 @@ $userRole = $_SESSION['role'];
 </head>
 <body>
     <header>
-        <nav class="navbar">
-            <div class="container">
-                <div class="logo" onclick="location.href='../index.php'">
-                    <i class="fas fa-home"></i>
-                    <span>ImmoHome</span>
-                </div>
-                <ul class="nav-links">
-                    <li><a href="agent_dashboard.php">Dashboard</a></li>
-                    <li><a href="my_listings.php">Mes Annonces</a></li>
-                    <li><a href="client_leads.php">Prospects</a></li>
-                    <li><a href="appointments.php">Rendez-vous</a></li>
-                    <li><a href="favorites.php">Favoris</a></li>
-                </ul>
-                <div class="nav-actions">
-                    <div class="user-profile-dropdown">
-                        <div class="user-avatar" onclick="toggleProfileDropdown()">
-                            <?php
-                            // Fetch user profile picture
-                            try {
-                                $stmt = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
-                                $stmt->execute([$_SESSION['user_id']]);
-                                $user = $stmt->fetch(PDO::FETCH_ASSOC);
-                                $profilePicture = isset($user['profile_picture']) ? $user['profile_picture'] : '';
-                                
-                                if (!empty($profilePicture) && file_exists($profilePicture)) {
-                                    echo '<img src="' . $profilePicture . '" alt="Profile" class="profile-img">';
-                                } else {
-                                    echo '<i class="fas fa-user-circle fa-2x"></i>';
-                                }
-                            } catch(PDOException $e) {
-                                echo '<i class="fas fa-user-circle fa-2x"></i>';
-                            }
-                            ?>
-                        </div>
-                        <div class="profile-dropdown-content" id="profileDropdown">
-                            <div class="profile-info">
-                                <p><?php echo htmlspecialchars($username); ?></p>
-                            </div>
-                            <a href="account_settings.php"><i class="fas fa-cog"></i> Paramètres</a>
-                            <a href="account_settings.php#language-theme"><i class="fas fa-language"></i> Langue & Thème</a>
-                            <a href="account_settings.php#user-info"><i class="fas fa-user-edit"></i> Informations Utilisateur</a>
-                            <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        <?php renderNavigation('schedule_appointment.php', $username, $userRole); ?>
     </header>
 
     <section class="dashboard-hero">
@@ -84,14 +99,17 @@ $userRole = $_SESSION['role'];
         <div class="container">
             <div class="form-container">
                 <h2>Détails du Rendez-vous</h2>
-                <form id="appointmentForm">
+                <?php if (!empty($message)): ?>
+                    <div class="alert alert-<?php echo strpos($message, 'succès') !== false ? 'success' : 'error'; ?>"><?= htmlspecialchars($message) ?></div>
+                <?php endif; ?>
+                <form id="appointmentForm" method="POST">
                     <div class="form-group">
                         <label for="client">Client</label>
                         <select id="client" name="client" required>
                             <option value="">Sélectionnez un client</option>
-                            <option value="1">Marie Dubois</option>
-                            <option value="2">Jean Martin</option>
-                            <option value="3">Pierre Lambert</option>
+                            <?php foreach ($clients as $client): ?>
+                                <option value="<?= htmlspecialchars($client['id']) ?>"><?= htmlspecialchars($client['username']) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     
@@ -122,9 +140,9 @@ $userRole = $_SESSION['role'];
                         <label for="property">Propriété (facultatif)</label>
                         <select id="property" name="property">
                             <option value="">Sélectionnez une propriété</option>
-                            <option value="1">123 Main Street, Paris</option>
-                            <option value="2">45 City Avenue, Lyon</option>
-                            <option value="3">78 Hill Road, Nice</option>
+                            <?php foreach ($properties as $property): ?>
+                                <option value="<?= htmlspecialchars($property['id']) ?>"><?= htmlspecialchars($property['address'] . ', ' . $property['city']) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     
@@ -276,53 +294,25 @@ $userRole = $_SESSION['role'];
             border-top: 1px solid #eee;
         }
         
-        /* User profile dropdown */
-        .user-profile-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .user-avatar {
-            cursor: pointer;
-            color: #006AFF;
-        }
-        
-        .profile-dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: #f9f9f9;
-            min-width: 200px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-            border-radius: 8px;
-            top: 100%;
-        }
-        
-        .profile-dropdown-content.show {
-            display: block;
-        }
-        
-        .profile-info {
+        .alert {
             padding: 15px;
-            border-bottom: 1px solid #eee;
-            font-weight: 500;
+            margin-bottom: 20px;
+            border-radius: 5px;
         }
         
-        .profile-dropdown-content a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
         
-        .profile-dropdown-content a:hover {
-            background-color: #f1f1f1;
-            border-radius: 4px;
-            margin: 0 5px;
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
+        
+        
         
         @media (max-width: 768px) {
             .form-container {
@@ -350,29 +340,10 @@ $userRole = $_SESSION['role'];
             document.getElementById('date').value = today;
         });
         
-        document.getElementById('appointmentForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            // In a real application, this would submit the form data
-            alert('Rendez-vous planifié avec succès!');
-            window.location.href = 'appointments.php';
-        });
+        // Form validation is handled server-side
+        // This script can be used for client-side enhancements if needed
         
-        function toggleProfileDropdown() {
-            document.getElementById("profileDropdown").classList.toggle("show");
-        }
         
-        // Close dropdown when clicking outside
-        window.onclick = function(event) {
-            if (!event.target.matches('.user-avatar') && !event.target.matches('.user-avatar *')) {
-                var dropdowns = document.getElementsByClassName("profile-dropdown-content");
-                for (var i = 0; i < dropdowns.length; i++) {
-                    var openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
-                }
-            }
-        }
     </script>
 </body>
 </html>
