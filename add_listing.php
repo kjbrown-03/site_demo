@@ -18,7 +18,7 @@ $userRole = $_SESSION['role'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prospects - ImmoHome</title>
+    <title>Ajouter une Annonce - ImmoHome</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -33,7 +33,7 @@ $userRole = $_SESSION['role'];
                 <ul class="nav-links">
                     <li><a href="agent_dashboard.php">Dashboard</a></li>
                     <li><a href="my_listings.php">Mes Annonces</a></li>
-                    <li><a href="client_leads.php" class="active">Prospects</a></li>
+                    <li><a href="client_leads.php">Prospects</a></li>
                     <li><a href="appointments.php">Rendez-vous</a></li>
                     <li><a href="favorites.php">Favoris</a></li>
                 </ul>
@@ -75,68 +75,85 @@ $userRole = $_SESSION['role'];
 
     <section class="dashboard-hero">
         <div class="container">
-            <h1>Prospects</h1>
-            <p>Gérer vos prospects et clients potentiels</p>
+            <h1>Ajouter une Annonce</h1>
+            <p>Publier une nouvelle annonce immobilière</p>
         </div>
     </section>
 
-    <section class="leads-section">
+    <section class="property-form-section">
         <div class="container">
-            <div class="section-header">
-                <h2>Vos Prospects Actifs</h2>
-                <button class="btn-primary" onclick="location.href='add_lead.php'">
-                    <i class="fas fa-plus"></i> Ajouter un Prospect
-                </button>
-            </div>
-            
-            <div class="leads-table-container">
-                <table class="leads-table">
-                    <thead>
-                        <tr>
-                            <th>Nom</th>
-                            <th>Email</th>
-                            <th>Téléphone</th>
-                            <th>Intérêt</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Marie Dubois</td>
-                            <td>marie.dubois@email.com</td>
-                            <td>+33 1 23 45 67 89</td>
-                            <td>Maison à Paris</td>
-                            <td><span class="status-badge active">Actif</span></td>
-                            <td>
-                                <button class="btn-small btn-secondary">Voir</button>
-                                <button class="btn-small btn-danger">Archiver</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Jean Martin</td>
-                            <td>jean.martin@email.com</td>
-                            <td>+33 1 98 76 54 32</td>
-                            <td>Appartement Lyon</td>
-                            <td><span class="status-badge pending">En Attente</span></td>
-                            <td>
-                                <button class="btn-small btn-secondary">Voir</button>
-                                <button class="btn-small btn-danger">Archiver</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Pierre Lambert</td>
-                            <td>pierre.lambert@email.com</td>
-                            <td>+33 1 45 67 89 01</td>
-                            <td>Investissement</td>
-                            <td><span class="status-badge converted">Converti</span></td>
-                            <td>
-                                <button class="btn-small btn-secondary">Voir</button>
-                                <button class="btn-small btn-danger">Archiver</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="form-container">
+                <h2>Informations sur l'Annonce</h2>
+                <form id="listingForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="propertyType">Type de Propriété</label>
+                            <select id="propertyType" name="propertyType" required>
+                                <option value="">Sélectionnez un type</option>
+                                <option value="house">Maison</option>
+                                <option value="apartment">Appartement</option>
+                                <option value="condo">Condo</option>
+                                <option value="townhouse">Townhouse</option>
+                                <option value="land">Terrain</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="price">Prix (€)</label>
+                            <input type="number" id="price" name="price" placeholder="Entrez le prix" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address">Adresse</label>
+                        <input type="text" id="address" name="address" placeholder="Adresse complète" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="city">Ville</label>
+                            <input type="text" id="city" name="city" placeholder="Nom de la ville" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="postalCode">Code Postal</label>
+                            <input type="text" id="postalCode" name="postalCode" placeholder="Code postal" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bedrooms">Chambres</label>
+                            <input type="number" id="bedrooms" name="bedrooms" min="0" placeholder="Nombre de chambres">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bathrooms">Salles de bain</label>
+                            <input type="number" id="bathrooms" name="bathrooms" min="0" placeholder="Nombre de salles de bain">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="area">Surface (m²)</label>
+                            <input type="number" id="area" name="area" min="0" placeholder="Surface totale">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="5" placeholder="Décrivez la propriété en détail..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="images">Images de la Propriété</label>
+                        <input type="file" id="images" name="images" multiple accept="image/*">
+                        <p class="help-text">Vous pouvez sélectionner plusieurs images (max 10)</p>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="history.back()">Annuler</button>
+                        <button type="submit" class="btn-primary">Publier l'Annonce</button>
+                    </div>
+                </form>
             </div>
         </div>
     </section>
@@ -210,89 +227,70 @@ $userRole = $_SESSION['role'];
             opacity: 0.9;
         }
         
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-        
-        .section-header h2 {
-            margin: 0;
-        }
-        
-        .leads-section {
+        .property-form-section {
             padding: 80px 0;
         }
         
-        .leads-table-container {
+        .form-container {
             background: white;
             border-radius: 12px;
-            overflow: hidden;
+            padding: 30px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            max-width: 800px;
+            margin: 0 auto;
         }
         
-        .leads-table {
-            width: 100%;
-            border-collapse: collapse;
+        .form-container h2 {
+            margin-top: 0;
+            margin-bottom: 30px;
+            color: #1A1A1A;
         }
         
-        .leads-table th,
-        .leads-table td {
-            padding: 15px 20px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
+        .form-group {
+            margin-bottom: 20px;
         }
         
-        .leads-table th {
-            background: #f8f9fa;
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
             font-weight: 600;
             color: #495057;
         }
         
-        .leads-table tbody tr:hover {
-            background: #f8f9fa;
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
         }
         
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #006AFF;
+            box-shadow: 0 0 0 3px rgba(0, 106, 255, 0.1);
+        }
+        
+        .help-text {
             font-size: 14px;
-            font-weight: 600;
+            color: #6B6B6B;
+            margin-top: 5px;
         }
         
-        .status-badge.active {
-            background: #28a745;
-            color: white;
-        }
-        
-        .status-badge.pending {
-            background: #ffc107;
-            color: #212529;
-        }
-        
-        .status-badge.converted {
-            background: #17a2b8;
-            color: white;
-        }
-        
-        .btn-small {
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            border: none;
-            margin-right: 5px;
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .btn-danger {
-            background: #dc3545;
-            color: white;
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
         }
         
         /* User profile dropdown */
@@ -344,23 +342,32 @@ $userRole = $_SESSION['role'];
         }
         
         @media (max-width: 768px) {
-            .section-header {
+            .form-container {
+                padding: 20px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-actions {
                 flex-direction: column;
-                gap: 20px;
-                align-items: flex-start;
             }
             
-            .leads-table-container {
-                overflow-x: auto;
-            }
-            
-            .leads-table {
-                min-width: 600px;
+            .form-actions button {
+                width: 100%;
             }
         }
     </style>
     
     <script>
+        document.getElementById('listingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // In a real application, this would submit the form data
+            alert('Annonce publiée avec succès!');
+            window.location.href = 'my_listings.php';
+        });
+        
         function toggleProfileDropdown() {
             document.getElementById("profileDropdown").classList.toggle("show");
         }

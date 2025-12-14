@@ -24,7 +24,53 @@ $userRole = $_SESSION['role'];
 </head>
 <body>
     <header>
-        <?php renderNavigation('my_sales.php', $username, $userRole); ?>
+        <nav class="navbar">
+            <div class="container">
+                <div class="logo" onclick="location.href='index.php'">
+                    <i class="fas fa-home"></i>
+                    <span>ImmoHome</span>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="seller_dashboard.php">Dashboard</a></li>
+                    <li><a href="my_properties.php">Mes Propriétés</a></li>
+                    <li><a href="add_property.php">Ajouter</a></li>
+                    <li><a href="my_sales.php" class="active">Mes Ventes</a></li>
+                    <li><a href="favorites.php">Favoris</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <div class="user-profile-dropdown">
+                        <div class="user-avatar" onclick="toggleProfileDropdown()">
+                            <?php
+                            // Fetch user profile picture
+                            try {
+                                $stmt = $pdo->prepare("SELECT profile_picture FROM users WHERE id = ?");
+                                $stmt->execute([$_SESSION['user_id']]);
+                                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                                $profilePicture = isset($user['profile_picture']) ? $user['profile_picture'] : '';
+                                
+                                if (!empty($profilePicture) && file_exists($profilePicture)) {
+                                    echo '<img src="' . $profilePicture . '" alt="Profile" class="profile-img">';
+                                } else {
+                                    echo '<i class="fas fa-user-circle fa-2x"></i>';
+                                }
+                            } catch(PDOException $e) {
+                                echo '<i class="fas fa-user-circle fa-2x"></i>';
+                            }
+                            ?>
+                        </div>
+                        <div class="profile-dropdown-content" id="profileDropdown">
+                            <div class="profile-info">
+                                <p><?php echo htmlspecialchars($username); ?></p>
+                            </div>
+                            <a href="account_settings.php"><i class="fas fa-cog"></i> Paramètres</a>
+                            <a href="account_settings.php#language-theme"><i class="fas fa-language"></i> Langue & Thème</a>
+                            <a href="account_settings.php#user-info"><i class="fas fa-user-edit"></i> Informations Utilisateur</a>
+                            <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
     </header>
 
     <section class="dashboard-hero">

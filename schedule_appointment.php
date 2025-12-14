@@ -18,7 +18,7 @@ $userRole = $_SESSION['role'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prospects - ImmoHome</title>
+    <title>Planifier un Rendez-vous - ImmoHome</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -33,7 +33,7 @@ $userRole = $_SESSION['role'];
                 <ul class="nav-links">
                     <li><a href="agent_dashboard.php">Dashboard</a></li>
                     <li><a href="my_listings.php">Mes Annonces</a></li>
-                    <li><a href="client_leads.php" class="active">Prospects</a></li>
+                    <li><a href="client_leads.php">Prospects</a></li>
                     <li><a href="appointments.php">Rendez-vous</a></li>
                     <li><a href="favorites.php">Favoris</a></li>
                 </ul>
@@ -75,68 +75,74 @@ $userRole = $_SESSION['role'];
 
     <section class="dashboard-hero">
         <div class="container">
-            <h1>Prospects</h1>
-            <p>Gérer vos prospects et clients potentiels</p>
+            <h1>Planifier un Rendez-vous</h1>
+            <p>Planifier un nouveau rendez-vous avec un client</p>
         </div>
     </section>
 
-    <section class="leads-section">
+    <section class="appointment-form-section">
         <div class="container">
-            <div class="section-header">
-                <h2>Vos Prospects Actifs</h2>
-                <button class="btn-primary" onclick="location.href='add_lead.php'">
-                    <i class="fas fa-plus"></i> Ajouter un Prospect
-                </button>
-            </div>
-            
-            <div class="leads-table-container">
-                <table class="leads-table">
-                    <thead>
-                        <tr>
-                            <th>Nom</th>
-                            <th>Email</th>
-                            <th>Téléphone</th>
-                            <th>Intérêt</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Marie Dubois</td>
-                            <td>marie.dubois@email.com</td>
-                            <td>+33 1 23 45 67 89</td>
-                            <td>Maison à Paris</td>
-                            <td><span class="status-badge active">Actif</span></td>
-                            <td>
-                                <button class="btn-small btn-secondary">Voir</button>
-                                <button class="btn-small btn-danger">Archiver</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Jean Martin</td>
-                            <td>jean.martin@email.com</td>
-                            <td>+33 1 98 76 54 32</td>
-                            <td>Appartement Lyon</td>
-                            <td><span class="status-badge pending">En Attente</span></td>
-                            <td>
-                                <button class="btn-small btn-secondary">Voir</button>
-                                <button class="btn-small btn-danger">Archiver</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Pierre Lambert</td>
-                            <td>pierre.lambert@email.com</td>
-                            <td>+33 1 45 67 89 01</td>
-                            <td>Investissement</td>
-                            <td><span class="status-badge converted">Converti</span></td>
-                            <td>
-                                <button class="btn-small btn-secondary">Voir</button>
-                                <button class="btn-small btn-danger">Archiver</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="form-container">
+                <h2>Détails du Rendez-vous</h2>
+                <form id="appointmentForm">
+                    <div class="form-group">
+                        <label for="client">Client</label>
+                        <select id="client" name="client" required>
+                            <option value="">Sélectionnez un client</option>
+                            <option value="1">Marie Dubois</option>
+                            <option value="2">Jean Martin</option>
+                            <option value="3">Pierre Lambert</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="date">Date</label>
+                            <input type="date" id="date" name="date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="time">Heure</label>
+                            <input type="time" id="time" name="time" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="type">Type de Rendez-vous</label>
+                        <select id="type" name="type" required>
+                            <option value="">Sélectionnez un type</option>
+                            <option value="property_visit">Visite de Propriété</option>
+                            <option value="contract_signing">Signature de Contrat</option>
+                            <option value="project_discussion">Discussion de Projet</option>
+                            <option value="follow_up">Suivi</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="property">Propriété (facultatif)</label>
+                        <select id="property" name="property">
+                            <option value="">Sélectionnez une propriété</option>
+                            <option value="1">123 Main Street, Paris</option>
+                            <option value="2">45 City Avenue, Lyon</option>
+                            <option value="3">78 Hill Road, Nice</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location">Lieu</label>
+                        <input type="text" id="location" name="location" placeholder="Adresse du rendez-vous">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <textarea id="notes" name="notes" rows="4" placeholder="Informations supplémentaires sur le rendez-vous..."></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="history.back()">Annuler</button>
+                        <button type="submit" class="btn-primary">Planifier le Rendez-vous</button>
+                    </div>
+                </form>
             </div>
         </div>
     </section>
@@ -210,89 +216,64 @@ $userRole = $_SESSION['role'];
             opacity: 0.9;
         }
         
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-        
-        .section-header h2 {
-            margin: 0;
-        }
-        
-        .leads-section {
+        .appointment-form-section {
             padding: 80px 0;
         }
         
-        .leads-table-container {
+        .form-container {
             background: white;
             border-radius: 12px;
-            overflow: hidden;
+            padding: 30px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            max-width: 800px;
+            margin: 0 auto;
         }
         
-        .leads-table {
-            width: 100%;
-            border-collapse: collapse;
+        .form-container h2 {
+            margin-top: 0;
+            margin-bottom: 30px;
+            color: #1A1A1A;
         }
         
-        .leads-table th,
-        .leads-table td {
-            padding: 15px 20px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
+        .form-group {
+            margin-bottom: 20px;
         }
         
-        .leads-table th {
-            background: #f8f9fa;
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
             font-weight: 600;
             color: #495057;
         }
         
-        .leads-table tbody tr:hover {
-            background: #f8f9fa;
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
         }
         
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #006AFF;
+            box-shadow: 0 0 0 3px rgba(0, 106, 255, 0.1);
         }
         
-        .status-badge.active {
-            background: #28a745;
-            color: white;
-        }
-        
-        .status-badge.pending {
-            background: #ffc107;
-            color: #212529;
-        }
-        
-        .status-badge.converted {
-            background: #17a2b8;
-            color: white;
-        }
-        
-        .btn-small {
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            border: none;
-            margin-right: 5px;
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .btn-danger {
-            background: #dc3545;
-            color: white;
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
         }
         
         /* User profile dropdown */
@@ -344,23 +325,38 @@ $userRole = $_SESSION['role'];
         }
         
         @media (max-width: 768px) {
-            .section-header {
+            .form-container {
+                padding: 20px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-actions {
                 flex-direction: column;
-                gap: 20px;
-                align-items: flex-start;
             }
             
-            .leads-table-container {
-                overflow-x: auto;
-            }
-            
-            .leads-table {
-                min-width: 600px;
+            .form-actions button {
+                width: 100%;
             }
         }
     </style>
     
     <script>
+        // Set default date to today
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+        });
+        
+        document.getElementById('appointmentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // In a real application, this would submit the form data
+            alert('Rendez-vous planifié avec succès!');
+            window.location.href = 'appointments.php';
+        });
+        
         function toggleProfileDropdown() {
             document.getElementById("profileDropdown").classList.toggle("show");
         }
