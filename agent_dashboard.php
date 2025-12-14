@@ -42,8 +42,8 @@ $userRole = $_SESSION['role'];
                         <i class="fas fa-home"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>My Listings</h3>
-                        <p>View and manage property listings</p>
+                        <h3>Mes Annonces</h3>
+                        <p>Gérer vos annonces immobilières</p>
                     </div>
                     <a href="my_listings.php" class="stat-action">
                         <i class="fas fa-arrow-right"></i>
@@ -55,8 +55,8 @@ $userRole = $_SESSION['role'];
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>Client Leads</h3>
-                        <p>Manage prospective clients</p>
+                        <h3>Prospects</h3>
+                        <p>Gérer vos prospects et clients potentiels</p>
                     </div>
                     <a href="client_leads.php" class="stat-action">
                         <i class="fas fa-arrow-right"></i>
@@ -68,8 +68,8 @@ $userRole = $_SESSION['role'];
                         <i class="fas fa-calendar-check"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>Appointments</h3>
-                        <p>View upcoming meetings</p>
+                        <h3>Rendez-vous</h3>
+                        <p>Gérer vos rendez-vous avec les clients</p>
                     </div>
                     <a href="appointments.php" class="stat-action">
                         <i class="fas fa-arrow-right"></i>
