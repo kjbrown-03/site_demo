@@ -12,7 +12,21 @@ function t($key) {
             'profile' => 'Profil',
             'language_and_theme' => 'Langue & Thème',
             'user_information' => 'Informations Utilisateur',
-            'notifications' => 'Notifications'
+            'notifications' => 'Notifications',
+            'change_your_profile_picture' => 'Changez votre photo de profil',
+            'no_profile_picture' => 'Aucune photo de profil',
+            'select_new_picture' => 'Sélectionner une nouvelle photo',
+            'supported_formats' => 'Formats supportés: JPG, JPEG, PNG, GIF',
+            'upload_picture' => 'Télécharger la photo',
+            'update_profile' => 'Mettre à jour le profil',
+            'first_name' => 'Prénom',
+            'last_name' => 'Nom',
+            'email' => 'Adresse Email',
+            'phone' => 'Numéro de Téléphone',
+            'city' => 'Ville',
+            'country' => 'Pays',
+            'save_changes' => 'Enregistrer les modifications',
+            'cancel' => 'Annuler'
         ]
     ];
     
@@ -29,14 +43,74 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Initialize variables with default values
+// Initialize variables
 $username = $_SESSION['username'] ?? 'Unknown';
 $userRole = $_SESSION['role'] ?? 'user';
 
-// Simple test data
-$firstName = 'John';
-$lastName = 'Doe';
-$email = 'john.doe@example.com';
+// Handle form submission
+$message = '';
+$error = '';
+
+// Get user information from database
+try {
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($user) {
+        $firstName = $user['first_name'] ?? '';
+        $lastName = $user['last_name'] ?? '';
+        $email = $user['email'] ?? '';
+        $phone = $user['phone'] ?? '';
+        $city = $user['city'] ?? '';
+        $country = $user['country'] ?? '';
+        $profilePicture = $user['profile_picture'] ?? '';
+    } else {
+        $error = "Utilisateur non trouvé.";
+    }
+} catch (PDOException $e) {
+    $error = "Erreur lors de la récupération des informations utilisateur.";
+}
+
+// Handle profile picture upload
+if (isset($_POST['upload_picture'])) {
+    if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] == 0) {
+        $target_dir = "uploads/profile_pictures/";
+        // Create directory if it doesn't exist
+        if (!file_exists($target_dir)) {
+            mkdir($target_dir, 0777, true);
+        }
+        
+        $file_extension = strtolower(pathinfo($_FILES["profile_picture"]["name"], PATHINFO_EXTENSION));
+        $allowed_extensions = array("jpg", "jpeg", "png", "gif");
+        
+        // Check if file extension is allowed
+        if (in_array($file_extension, $allowed_extensions)) {
+            // Generate unique filename
+            $filename = uniqid() . '_' . $_SESSION['user_id'] . '.' . $file_extension;
+            $target_file = $target_dir . $filename;
+            
+            // Move uploaded file
+            if (move_uploaded_file($_FILES["profile_picture"]["tmp_name"], $target_file)) {
+                // Update database with new profile picture path
+                try {
+                    $stmt = $pdo->prepare("UPDATE users SET profile_picture = ? WHERE id = ?");
+                    $stmt->execute([$target_file, $_SESSION['user_id']]);
+                    $profilePicture = $target_file; // Update the variable for immediate display
+                    $message = "Photo de profil mise à jour avec succès!";
+                } catch (PDOException $e) {
+                    $error = "Erreur lors de la mise à jour de la photo de profil.";
+                }
+            } else {
+                $error = "Erreur lors du téléchargement de l'image.";
+            }
+        } else {
+            $error = "Format de fichier non autorisé. Veuillez utiliser JPG, JPEG, PNG ou GIF.";
+        }
+    } else {
+        $error = "Veuillez sélectionner une image à télécharger.";
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -56,15 +130,30 @@ $email = 'john.doe@example.com';
                     <span>ImmoHome</span>
                 </div>
                 <ul class="nav-links">
-                    <li><a href="seller_dashboard.php">Dashboard</a></li>
-                    <li><a href="my_properties.php">Mes Propriétés</a></li>
-                    <li><a href="add_property.php">Ajouter</a></li>
-                    <li><a href="my_sales.php">Mes Ventes</a></li>
+                    <?php if ($userRole === 'seller'): ?>
+                        <li><a href="seller_dashboard.php">Dashboard</a></li>
+                        <li><a href="my_properties.php">Mes Propriétés</a></li>
+                        <li><a href="add_property.php">Ajouter</a></li>
+                        <li><a href="my_sales.php">Mes Ventes</a></li>
+                    <?php elseif ($userRole === 'agent'): ?>
+                        <li><a href="agent_dashboard.php">Dashboard</a></li>
+                        <li><a href="my_listings.php">Mes Annonces</a></li>
+                        <li><a href="client_leads.php">Prospects</a></li>
+                        <li><a href="appointments.php">Rendez-vous</a></li>
+                    <?php elseif ($userRole === 'buyer'): ?>
+                        <li><a href="buyer_dashboard.php">Dashboard</a></li>
+                        <li><a href="search_properties.php">Rechercher</a></li>
+                        <li><a href="my_orders.php">Mes Commandes</a></li>
+                    <?php endif; ?>
                     <li><a href="favorites.php">Favoris</a></li>
                 </ul>
                 <div class="nav-actions">
                     <div class="user-avatar" onclick="toggleProfileDropdown()">
-                        <i class="fas fa-user-circle fa-2x"></i>
+                        <?php if (!empty($profilePicture) && file_exists($profilePicture)): ?>
+                            <img src="<?php echo $profilePicture; ?>" alt="Profile" class="profile-img" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                        <?php else: ?>
+                            <i class="fas fa-user-circle fa-2x"></i>
+                        <?php endif; ?>
                     </div>
                     <div id="profileDropdown" class="profile-dropdown-content">
                         <div class="profile-info">
@@ -120,13 +209,28 @@ $email = 'john.doe@example.com';
                     <div class="settings-card" id="profile-picture">
                         <div class="settings-header">
                             <h2><?php echo t('profile_picture'); ?></h2>
-                            <p>Changez votre photo de profil</p>
+                            <p><?php echo t('change_your_profile_picture'); ?></p>
                         </div>
                         <div class="profile-picture-section">
-                            <div class="profile-placeholder">
-                                <i class="fas fa-user-circle fa-5x"></i>
-                                <p>Aucune photo de profil</p>
-                            </div>
+                            <?php if (!empty($profilePicture) && file_exists($profilePicture)): ?>
+                                <div class="current-profile-picture">
+                                    <img src="<?php echo $profilePicture; ?>" alt="Profile Picture" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea;">
+                                    <p>Photo de profil actuelle</p>
+                                </div>
+                            <?php else: ?>
+                                <div class="profile-placeholder">
+                                    <i class="fas fa-user-circle fa-5x"></i>
+                                    <p><?php echo t('no_profile_picture'); ?></p>
+                                </div>
+                            <?php endif; ?>
+                            <form action="" method="post" enctype="multipart/form-data">
+                                <div class="input-group">
+                                    <label for="profile_picture"><?php echo t('select_new_picture'); ?></label>
+                                    <input type="file" name="profile_picture" id="profile_picture">
+                                </div>
+                                <p><?php echo t('supported_formats'); ?></p>
+                                <button type="submit" name="upload_picture"><?php echo t('upload_picture'); ?></button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -152,5 +256,143 @@ $email = 'john.doe@example.com';
             }
         }
     </script>
+    
+    <style>
+        .settings-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+            margin-top: 70px;
+        }
+        
+        .settings-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .settings-hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .settings-content {
+            padding: 40px 0;
+        }
+        
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 30px;
+        }
+        
+        .settings-sidebar {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        .settings-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: #333;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .settings-menu-item:hover,
+        .settings-menu-item.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .settings-menu-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .settings-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .settings-header {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .settings-header h2 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .profile-picture-section {
+            text-align: center;
+        }
+        
+        .profile-placeholder, .current-profile-picture {
+            margin-bottom: 20px;
+        }
+        
+        .profile-placeholder i, .current-profile-picture img {
+            margin-bottom: 15px;
+        }
+        
+        .profile-placeholder i {
+            color: #ddd;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .input-group input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+        
+        button:hover {
+            background: #5a6fd8;
+        }
+        
+        @media (max-width: 768px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .settings-hero h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </body>
 </html>

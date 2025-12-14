@@ -2,6 +2,15 @@
 // Navigation component for consistent navigation across all dashboards
 
 function renderNavigation($currentPage = '', $username = '', $userRole = '') {
+    // Get profile picture if user is logged in
+    $profilePicture = null;
+    if (isset($_SESSION['user_id'])) {
+        // We need to get the PDO connection
+        require_once 'common_header.php';
+        global $pdo;
+        $profilePicture = getUserProfilePicture($pdo, $_SESSION['user_id']);
+    }
+    
     $navLinks = [
         'buyer' => [
             ['url' => 'buyer_dashboard.php', 'label' => 'Dashboard', 'active' => $currentPage === 'buyer_dashboard.php'],
@@ -73,10 +82,26 @@ function renderNavigation($currentPage = '', $username = '', $userRole = '') {
     echo '        <div class="nav-actions">';
     
     if ($username) {
-        echo '            <span class="user-welcome">' . ($userRole === 'admin' ? 'Admin: ' : 'Bonjour, ') . htmlspecialchars($username) . '!</span>';
+        echo '            <div class="user-profile-dropdown">';
+        echo '                <div class="user-avatar" onclick="toggleProfileDropdown()">';
+        if ($profilePicture) {
+            echo '                    <img src="' . $profilePicture . '" alt="Profile" class="profile-img" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">';
+        } else {
+            echo '                    <i class="fas fa-user-circle fa-2x"></i>';
+        }
+        echo '                </div>';
+        echo '                <div class="profile-dropdown-content" id="profileDropdown">';
+        echo '                    <div class="profile-info">';
+        echo '                        <p>' . htmlspecialchars($username) . '</p>';
+        echo '                    </div>';
+        echo '                    <a href="account_settings.php"><i class="fas fa-cog"></i> Paramètres</a>';
+        echo '                    <a href="account_settings.php#language-theme"><i class="fas fa-language"></i> Langue & Thème</a>';
+        echo '                    <a href="account_settings.php#user-info"><i class="fas fa-user-edit"></i> Informations Utilisateur</a>';
+        echo '                    <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>';
+        echo '                </div>';
+        echo '            </div>';
     }
     
-    echo '            <a href="logout.php" class="btn-secondary">Déconnexion</a>';
     echo '        </div>';
     echo '    </div>';
     echo '</nav>';
@@ -121,6 +146,75 @@ function renderNavigation($currentPage = '', $username = '', $userRole = '') {
     echo '        align-items: center;';
     echo '        gap: 5px;';
     echo '    }';
+    echo '    ';
+    echo '    /* User profile dropdown */';
+    echo '    .user-profile-dropdown {';
+    echo '        position: relative;';
+    echo '        display: inline-block;';
+    echo '    }';
+    echo '    ';
+    echo '    .user-avatar {';
+    echo '        cursor: pointer;';
+    echo '        color: #006AFF;';
+    echo '    }';
+    echo '    ';
+    echo '    .profile-dropdown-content {';
+    echo '        display: none;';
+    echo '        position: absolute;';
+    echo '        right: 0;';
+    echo '        background-color: #f9f9f9;';
+    echo '        min-width: 200px;';
+    echo '        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);';
+    echo '        z-index: 1;';
+    echo '        border-radius: 8px;';
+    echo '        top: 100%;';
+    echo '    }';
+    echo '    ';
+    echo '    .profile-dropdown-content.show {';
+    echo '        display: block;';
+    echo '    }';
+    echo '    ';
+    echo '    .profile-info {';
+    echo '        padding: 15px;';
+    echo '        border-bottom: 1px solid #eee;';
+    echo '        font-weight: 500;';
+    echo '    }';
+    echo '    ';
+    echo '    .profile-dropdown-content a {';
+    echo '        color: black;';
+    echo '        padding: 12px 16px;';
+    echo '        text-decoration: none;';
+    echo '        display: flex;';
+    echo '        align-items: center;';
+    echo '        gap: 10px;';
+    echo '    }';
+    echo '    ';
+    echo '    .profile-dropdown-content a:hover {';
+    echo '        background-color: #f1f1f1;';
+    echo '        border-radius: 4px;';
+    echo '        margin: 0 5px;';
+    echo '    }';
     echo '</style>';
+    
+    // Include JavaScript for profile dropdown
+    echo '<script>';
+    echo '    function toggleProfileDropdown() {';
+    echo '        document.getElementById("profileDropdown").classList.toggle("show");';
+    echo '    }';
+    echo '    ';
+    echo '    // Close dropdown when clicking outside';
+    echo '    window.onclick = function(event) {';
+    echo '        if (!event.target.matches(\'.user-avatar\') && !event.target.matches(\'.user-avatar *\')) {';
+    echo '            var dropdowns = document.getElementsByClassName("profile-dropdown-content");';
+    echo '            for (var i = 0; i < dropdowns.length; i++) {';
+    echo '                var openDropdown = dropdowns[i];';
+    echo '                if (openDropdown.classList.contains(\'show\')) {';
+    echo '                    openDropdown.classList.remove(\'show\');';
+    echo '                }';
+    echo '            }';
+    echo '        }';
+    echo '    }';
+    echo '</script>';
 }
+
 ?>
