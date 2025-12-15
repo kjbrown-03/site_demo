@@ -1,46 +1,42 @@
 <?php
 session_start();
-require_once dirname(__DIR__) . '/config.php';
-require_once dirname(__DIR__) . '/includes/language_handler.php';
-require_once dirname(__DIR__) . '/includes/navigation.php';
+require_once 'config.php';
+require_once 'includes/navigation.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'seller') {
-    header('Location: ../auth/login.php');
+    header('Location: login.php');
     exit();
 }
 
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
-$userId = $_SESSION['user_id'];
 
-// Fetch user's properties (sellers use seller_id)
+// Fetch seller's properties from database
 try {
-    $stmt = $pdo->prepare("SELECT * FROM properties WHERE seller_id = ? ORDER BY created_at DESC");
-    $stmt->execute([$userId]);
+    $stmt = $pdo->prepare("SELECT * FROM properties WHERE agent_id = ? ORDER BY created_at DESC");
+    $stmt->execute([$_SESSION['user_id']]);
     $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch(PDOException $e) {
     $properties = [];
-    $error = "Error fetching properties: " . $e->getMessage();
     error_log("Error fetching properties: " . $e->getMessage());
-
 }
 ?>
 
 <!DOCTYPE html>
-<html lang="<?php echo $htmlLang; ?>" class="<?php echo $currentTheme; ?>">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo t('my_properties_title'); ?> - ImmoHome</title>
-    <link rel="stylesheet" href="../assets/style.css">
+    <title>Mes Propriétés - ImmoHome</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <header>
         <nav class="navbar">
             <div class="container">
-                <div class="logo" onclick="location.href='../index.php'">
+                <div class="logo" onclick="location.href='index.php'">
                     <i class="fas fa-home"></i>
                     <span>ImmoHome</span>
                 </div>
@@ -104,31 +100,32 @@ try {
             </div>
             
             <div class="properties-grid" id="propertiesGrid">
+                <!-- Properties will be loaded dynamically -->
                 <?php if (!empty($properties)): ?>
                     <?php foreach ($properties as $property): ?>
                         <div class="property-card">
-                            <div class="property-image" style="background-image: url('<?php echo !empty($property['image_url']) ? '../' . htmlspecialchars($property['image_url']) : 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800'; ?>');">
+                            <div class="property-image" style="background-image: url('<?php echo htmlspecialchars(isset($property['image_url']) ? $property['image_url'] : 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800'); ?>');">
                                 <span class="property-badge <?php echo $property['status'] == 'sold' ? 'sold' : 'active'; ?>">
-                                    <?php echo t($property['status']); ?>
+                                    <?php echo ucfirst(str_replace('_', ' ', $property['status'])); ?>
                                 </span>
                                 <div class="property-favorite">
                                     <i class="<?php echo $property['status'] == 'sold' ? 'far' : 'fas'; ?> fa-heart"></i>
                                 </div>
                             </div>
                             <div class="property-info">
-                                <div class="property-price"><?php echo number_format($property['price'], 0, ',', ' '); ?> €</div>
-                                <div class="property-address"><?php echo htmlspecialchars($property['address'] . (isset($property['city']) ? ', ' . $property['city'] : '')); ?></div>
+                                <div class="property-price">€<?php echo number_format($property['price'], 0, ',', ' '); ?></div>
+                                <div class="property-address"><?php echo htmlspecialchars($property['address'] . ', ' . $property['city']); ?></div>
                                 <div class="property-details">
                                     <?php if (isset($property['bedrooms']) && $property['bedrooms'] > 0): ?>
                                         <div class="property-detail">
                                             <i class="fas fa-bed"></i>
-                                            <span><?php echo $property['bedrooms']; ?> <?php echo t('beds_abbr'); ?></span>
+                                            <span><?php echo $property['bedrooms']; ?> chambres</span>
                                         </div>
                                     <?php endif; ?>
                                     <?php if (isset($property['bathrooms']) && $property['bathrooms'] > 0): ?>
                                         <div class="property-detail">
                                             <i class="fas fa-bath"></i>
-                                            <span><?php echo $property['bathrooms']; ?> <?php echo t('baths_abbr'); ?></span>
+                                            <span><?php echo $property['bathrooms']; ?> salles de bain</span>
                                         </div>
                                     <?php endif; ?>
                                     <?php if (isset($property['area_sqm']) && $property['area_sqm'] > 0): ?>
@@ -140,21 +137,17 @@ try {
                                 </div>
                                 <div class="property-actions">
                                     <?php if ($property['status'] != 'sold'): ?>
-                                        <button class="btn-small btn-secondary" onclick="location.href='../pages/edit_property.php?id=<?php echo $property['id']; ?>'"><?php echo t('edit'); ?></button>
-                                        <button class="btn-small btn-danger" onclick="deleteProperty(<?php echo $property['id']; ?>)"><?php echo t('delete'); ?></button>
+                                        <button class="btn-small btn-secondary" onclick="editProperty(<?php echo $property['id']; ?>)">Modifier</button>
+                                        <button class="btn-small btn-danger" onclick="deleteProperty(<?php echo $property['id']; ?>)">Retirer</button>
                                     <?php else: ?>
-                                        <button class="btn-small btn-secondary" disabled><?php echo t('edit'); ?></button>
-                                        <button class="btn-small btn-danger" onclick="archiveProperty(<?php echo $property['id']; ?>)"><?php echo t('delete'); ?></button>
+                                        <button class="btn-small btn-secondary" disabled>Modifier</button>
+                                        <button class="btn-small btn-danger" onclick="archiveProperty(<?php echo $property['id']; ?>)">Archiver</button>
                                     <?php endif; ?>
                                 </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <div class="no-properties">
-                        <p><?php echo t('no_properties_found'); ?></p>
-                        <button class="btn-primary" onclick="location.href='../pages/add_property.php'"><?php echo t('add_property'); ?></button>
-                    </div>
                     <div class="no-results">
                         <i class="fas fa-home fa-3x"></i>
                         <h3>Aucune propriété trouvée</h3>
@@ -465,31 +458,6 @@ try {
                         openDropdown.classList.remove('show');
                     }
                 }
-            }
-        }
-
-        function deleteProperty(propertyId) {
-            if (confirm('<?php echo t('confirm_delete_property'); ?>')) {
-                fetch('../api/delete_property.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ property_id: propertyId })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('<?php echo t('property_deleted_success'); ?>');
-                        location.reload();
-                    } else {
-                        alert('<?php echo t('error_deleting_property'); ?>: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('<?php echo t('error_deleting_property'); ?>');
-                });
             }
         }
     </script>

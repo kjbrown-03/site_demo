@@ -3,6 +3,7 @@ session_start();
 require_once dirname(__DIR__) . '/config.php';
 require_once dirname(__DIR__) . '/includes/language_handler.php';
 require_once dirname(__DIR__) . '/includes/pagination_helper.php';
+require_once dirname(__DIR__) . '/includes/navigation.php';
 
 // Check if user is logged in
 $isLoggedIn = isset($_SESSION['user_id']);

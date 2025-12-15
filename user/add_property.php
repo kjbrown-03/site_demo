@@ -55,7 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="<?php echo $htmlLang; ?>" class="<?php echo $currentTheme; ?>">
 <head>
@@ -74,11 +73,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span>ImmoHome</span>
                 </div>
                 <ul class="nav-links">
-                    <li><a href="../dashboards/seller_dashboard.php"><?php echo t('dashboard'); ?></a></li>
-                    <li><a href="../user/my_properties.php"><?php echo t('my_properties_title'); ?></a></li>
+                    <li><a href="seller_dashboard.php"><?php echo t('dashboard'); ?></a></li>
+                    <li><a href="my_properties.php"><?php echo t('my_properties_title'); ?></a></li>
                     <li><a href="add_property.php" class="active"><?php echo t('add'); ?></a></li>
-                    <li><a href="../user/my_sales.php"><?php echo t('my_sales_title'); ?></a></li>
-                    <li><a href="../user/favorites.php"><?php echo t('favorites'); ?></a></li>
+                    <li><a href="my_sales.php"><?php echo t('my_sales_title'); ?></a></li>
+                    <li><a href="favorites.php"><?php echo t('favorites'); ?></a></li>
                 </ul>
                 <div class="nav-actions">
                     <div class="user-profile-dropdown">
@@ -108,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <a href="account_settings.php"><i class="fas fa-cog"></i> Paramètres</a>
                             <a href="account_settings.php#language-theme"><i class="fas fa-language"></i> Langue & Thème</a>
                             <a href="account_settings.php#user-info"><i class="fas fa-user-edit"></i> Informations Utilisateur</a>
-                            <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+                            <a href="../auth/logout.php"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
                         </div>
                     </div>
                 </div>
@@ -288,75 +287,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-container {
             background: white;
             border-radius: 12px;
-            padding: 30px;
+            padding: 40px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             max-width: 800px;
             margin: 0 auto;
         }
         
         .form-container h2 {
-            margin-top: 0;
             margin-bottom: 30px;
             color: #1A1A1A;
-        }
-        
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .alert.error {
-            background: #FFEAEA;
-            color: #FF4757;
-            border: 1px solid #FFD1D1;
         }
         
         .form-group {
             margin-bottom: 20px;
         }
         
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-        
-        label {
+        .form-group label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #495057;
+            color: #333;
         }
         
-        input, select, textarea {
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 12px 15px;
-            border: 1px solid #ced4da;
+            border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 16px;
             transition: border-color 0.3s;
         }
         
-        input:focus, select:focus, textarea:focus {
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: #006AFF;
-            box-shadow: 0 0 0 3px rgba(0, 106, 255, 0.1);
         }
         
-        .help-text {
-            font-size: 14px;
-            color: #6B6B6B;
-            margin-top: 5px;
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
         }
         
         .form-actions {
             display: flex;
             gap: 15px;
-            justify-content: flex-end;
             margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
+        }
+        
+        .help-text {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
         }
         
         @media (max-width: 768px) {
@@ -371,10 +357,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .form-actions {
                 flex-direction: column;
             }
-            
-            .form-actions button {
-                width: 100%;
-            }
+        }
+        
+        /* User profile dropdown */
+        .user-profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-avatar {
+            cursor: pointer;
+            color: #006AFF;
+        }
+        
+        .profile-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #f9f9f9;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 8px;
+            top: 100%;
+        }
+        
+        .profile-dropdown-content.show {
+            display: block;
+        }
+        
+        .profile-info {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            font-weight: 500;
+        }
+        
+        .profile-dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .profile-dropdown-content a:hover {
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            margin: 0 5px;
         }
     </style>
     
@@ -435,6 +465,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 submitBtn.textContent = originalText;
             }
         });
+        
+        function toggleProfileDropdown() {
+            document.getElementById("profileDropdown").classList.toggle("show");
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-avatar') && !event.target.matches('.user-avatar *')) {
+                var dropdowns = document.getElementsByClassName("profile-dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
     </script>
 </body>
 </html>

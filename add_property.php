@@ -1,16 +1,11 @@
 <?php
 session_start();
-require_once dirname(__DIR__) . '/config.php';
-require_once dirname(__DIR__) . '/includes/navigation.php';
-require_once dirname(__DIR__) . '/includes/language_handler.php';
-
-// Get language and theme preferences
-$htmlLang = isset($_SESSION['language']) ? $_SESSION['language'] : 'fr';
-$currentTheme = isset($_SESSION['theme']) ? $_SESSION['theme'] : 'light';
+require_once 'config.php';
+require_once 'includes/navigation.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'seller') {
-    header('Location: ../auth/login.php');
+    header('Location: login.php');
     exit();
 }
 
@@ -30,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $bathrooms = $_POST['bathrooms'] ?? 0;
         $area_sqm = $_POST['area'] ?? 0;
         
-        // Insert property into database (sellers use seller_id)
-        $stmt = $pdo->prepare("INSERT INTO properties (seller_id, title, description, price, address, city, type, bedrooms, bathrooms, area_sqm, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        // Insert property into database
+        $stmt = $pdo->prepare("INSERT INTO properties (agent_id, title, description, price, address, city, type, bedrooms, bathrooms, area_sqm, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $_SESSION['user_id'],
             $title,
@@ -57,28 +52,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!DOCTYPE html>
-<html lang="<?php echo $htmlLang; ?>" class="<?php echo $currentTheme; ?>">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo t('add_property'); ?> - ImmoHome</title>
-    <link rel="stylesheet" href="../assets/style.css">
+    <title>Ajouter une Propriété - ImmoHome</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="<?php echo $currentTheme; ?>">
+<body>
     <header>
         <nav class="navbar">
             <div class="container">
-                <div class="logo" onclick="location.href='../index.php'">
+                <div class="logo" onclick="location.href='index.php'">
                     <i class="fas fa-home"></i>
                     <span>ImmoHome</span>
                 </div>
                 <ul class="nav-links">
-                    <li><a href="../dashboards/seller_dashboard.php"><?php echo t('dashboard'); ?></a></li>
-                    <li><a href="../user/my_properties.php"><?php echo t('my_properties_title'); ?></a></li>
-                    <li><a href="add_property.php" class="active"><?php echo t('add'); ?></a></li>
-                    <li><a href="../user/my_sales.php"><?php echo t('my_sales_title'); ?></a></li>
-                    <li><a href="../user/favorites.php"><?php echo t('favorites'); ?></a></li>
+                    <li><a href="seller_dashboard.php">Dashboard</a></li>
+                    <li><a href="my_properties.php">Mes Propriétés</a></li>
+                    <li><a href="add_property.php" class="active">Ajouter</a></li>
+                    <li><a href="my_sales.php">Mes Ventes</a></li>
+                    <li><a href="favorites.php">Favoris</a></li>
                 </ul>
                 <div class="nav-actions">
                     <div class="user-profile-dropdown">
@@ -118,15 +113,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <section class="dashboard-hero">
         <div class="container">
-            <h1><?php echo t('add_property'); ?></h1>
-            <p><?php echo t('publish_new_property'); ?></p>
+            <h1>Ajouter une Propriété</h1>
+            <p>Publier une nouvelle propriété pour la vente</p>
         </div>
     </section>
 
     <section class="property-form-section">
         <div class="container">
             <div class="form-container">
-                <h2><?php echo t('property_information'); ?></h2>
+                <h2>Informations sur la Propriété</h2>
                 
                 <?php if (isset($error)): ?>
                     <div class="alert error">
@@ -134,38 +129,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 <?php endif; ?>
                 
-                <form id="propertyForm" method="POST" enctype="multipart/form-data">
+                <form id="propertyForm" method="POST">
                     <div class="form-group">
-                        <label for="title"><?php echo t('title'); ?></label>
-                        <input type="text" id="title" name="title" placeholder="<?php echo t('enter_title'); ?>" required>
+                        <label for="title">Titre de l'annonce</label>
+                        <input type="text" id="title" name="title" placeholder="Ex: Belle maison familiale avec jardin" required>
                     </div>
+                    
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="propertyType"><?php echo t('property_type'); ?></label>
-                            <select id="propertyType" name="type" required>
-                                <option value=""><?php echo t('select_type'); ?></option>
-                                <option value="house"><?php echo t('house'); ?></option>
-                                <option value="apartment"><?php echo t('apartment'); ?></option>
-                                <option value="villa"><?php echo t('villa'); ?></option>
-                                <option value="land"><?php echo t('land'); ?></option>
+                            <label for="propertyType">Type de Propriété</label>
+                            <select id="propertyType" name="propertyType" required>
+                                <option value="">Sélectionnez un type</option>
+                                <option value="house">Maison</option>
+                                <option value="apartment">Appartement</option>
+                                <option value="condo">Condo</option>
+                                <option value="townhouse">Townhouse</option>
+                                <option value="land">Terrain</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
-                            <label for="price"><?php echo t('price'); ?> (€)</label>
-                            <input type="number" id="price" name="price" placeholder="<?php echo t('enter_price'); ?>" required>
+                            <label for="price">Prix (€)</label>
+                            <input type="number" id="price" name="price" placeholder="Entrez le prix" required>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="address"><?php echo t('address'); ?></label>
-                        <input type="text" id="address" name="address" placeholder="<?php echo t('enter_address'); ?>" required>
+                        <label for="address">Adresse</label>
+                        <input type="text" id="address" name="address" placeholder="Adresse complète" required>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="city"><?php echo t('city'); ?></label>
-                            <input type="text" id="city" name="city" placeholder="<?php echo t('enter_city'); ?>" required>
+                            <label for="city">Ville</label>
+                            <input type="text" id="city" name="city" placeholder="Nom de la ville" required>
                         </div>
                         
                         <div class="form-group">
@@ -176,36 +173,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="bedrooms"><?php echo t('bedrooms'); ?></label>
-                            <input type="number" id="bedrooms" name="bedrooms" min="0" placeholder="<?php echo t('select_bedrooms'); ?>">
+                            <label for="bedrooms">Chambres</label>
+                            <input type="number" id="bedrooms" name="bedrooms" min="0" placeholder="Nombre de chambres">
                         </div>
                         
                         <div class="form-group">
-                            <label for="bathrooms"><?php echo t('bathrooms'); ?></label>
-                            <input type="number" id="bathrooms" name="bathrooms" min="0" placeholder="<?php echo t('select_bathrooms'); ?>">
+                            <label for="bathrooms">Salles de bain</label>
+                            <input type="number" id="bathrooms" name="bathrooms" min="0" placeholder="Nombre de salles de bain">
                         </div>
                         
                         <div class="form-group">
-                            <label for="area"><?php echo t('area'); ?> (m²)</label>
-                            <input type="number" id="area" name="area_sqm" min="0" placeholder="<?php echo t('enter_area'); ?>">
+                            <label for="area">Surface (m²)</label>
+                            <input type="number" id="area" name="area" min="0" placeholder="Surface totale">
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="description"><?php echo t('description'); ?></label>
-                        <textarea id="description" name="description" rows="5" placeholder="<?php echo t('describe_property'); ?>"></textarea>
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="5" placeholder="Décrivez votre propriété en détail..."></textarea>
                     </div>
                     
                     <div class="form-group">
-                        <label for="image"><?php echo t('property_image'); ?></label>
-                        <input type="file" id="image" name="image" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp">
-                        <p class="help-text"><?php echo t('image_help_text'); ?></p>
-                        <div id="imagePreview" style="margin-top: 10px;"></div>
+                        <label for="images">Images de la Propriété</label>
+                        <input type="file" id="images" name="images" multiple accept="image/*">
+                        <p class="help-text">Vous pouvez sélectionner plusieurs images (max 10)</p>
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" class="btn-secondary" onclick="history.back()"><?php echo t('cancel'); ?></button>
-                        <button type="submit" class="btn-primary"><?php echo t('submit_listing'); ?></button>
+                        <button type="button" class="btn-secondary" onclick="history.back()">Annuler</button>
+                        <button type="submit" class="btn-primary">Publier la Propriété</button>
                     </div>
                 </form>
             </div>
@@ -379,62 +375,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
     
     <script>
-        // Image preview
-        document.getElementById('image').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const preview = document.getElementById('imagePreview');
-            preview.innerHTML = '';
-            
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.style.maxWidth = '200px';
-                    img.style.maxHeight = '200px';
-                    img.style.borderRadius = '8px';
-                    img.style.marginTop = '10px';
-                    preview.appendChild(img);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-        
-        // Form submission
-        document.getElementById('propertyForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            
-            // Disable submit button
-            submitBtn.disabled = true;
-            submitBtn.textContent = '<?php echo t('submitting'); ?>...';
-            
-            try {
-                const response = await fetch('../api/submit_property.php', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    alert('<?php echo t('property_listing_submitted'); ?>');
-                    window.location.href = '../user/my_properties.php';
-                } else {
-                    alert('<?php echo t('error_submitting_listing'); ?>: ' + result.message);
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = originalText;
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('<?php echo t('error_submitting_listing'); ?>');
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-            }
-        });
+        // Form validation can be added here if needed
     </script>
 </body>
 </html>

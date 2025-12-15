@@ -13,6 +13,7 @@ if (!isset($_SESSION['user_id'])) {
 // Get user info
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
+$isLoggedIn = isset($_SESSION['user_id']);
 
 // Check if user is a buyer - if so, redirect to buy page
 if ($userRole == 'buyer') {
