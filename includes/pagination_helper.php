@@ -145,7 +145,11 @@ function getCountQuery($mainQuery) {
     // Remove OFFSET clause
     $countQuery = preg_replace('/\s+OFFSET\s+.*$/i', '', $countQuery);
     
+    // Handle edge case where query might have issues
+    if (empty($countQuery)) {
+        return "SELECT COUNT(*) as total FROM properties";
+    }
+    
     return trim($countQuery);
 }
 ?>
-

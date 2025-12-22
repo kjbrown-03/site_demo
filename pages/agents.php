@@ -13,11 +13,52 @@ if (!isset($_SESSION['user_id'])) {
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
 $isLoggedIn = true;
+$clientId = $_SESSION['user_id'];
 
 // Check if user is a buyer - if so, redirect to buy page
 if ($userRole == 'buyer') {
     header('Location: buy.php');
     exit();
+}
+
+// Handle contact form submission
+$message = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['contact_agent'])) {
+    $agentId = intval($_POST['agent_id']);
+    $firstName = trim($_POST['first_name']);
+    $lastName = trim($_POST['last_name']);
+    $email = trim($_POST['email']);
+    $phone = trim($_POST['phone']);
+    $interest = trim($_POST['interest']);
+    $budget = !empty($_POST['budget']) ? floatval($_POST['budget']) : null;
+    $locationPreference = trim($_POST['location_preference']);
+    $notes = trim($_POST['notes']);
+    
+    // Validate required fields
+    if (empty($firstName) || empty($lastName) || empty($email) || empty($interest)) {
+        $message = "Please fill in all required fields.";
+    } else {
+        try {
+            // Insert lead into database
+            $stmt = $pdo->prepare("INSERT INTO leads (agent_id, first_name, last_name, email, phone, interest, budget, location_preference, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $agentId,
+                $firstName,
+                $lastName,
+                $email,
+                $phone,
+                $interest,
+                $budget,
+                $locationPreference,
+                $notes
+            ]);
+            
+            $message = "Your request has been sent successfully! The agent will contact you soon.";
+        } catch (PDOException $e) {
+            error_log("Error saving lead: " . $e->getMessage());
+            $message = "Error sending your request. Please try again.";
+        }
+    }
 }
 
 // Fetch agents from database
@@ -44,7 +85,7 @@ try {
     <header>
         <nav class="navbar">
             <div class="container">
-                <div class="logo" onclick="location.href='index.html'">
+                <div class="logo" onclick="location.href='../index.php'">
                     <i class="fas fa-home"></i>
                     <span>ImmoHome</span>
                 </div>
@@ -62,7 +103,7 @@ try {
                 </ul>
                 <div class="nav-actions">
                     <span class="user-welcome">Welcome, <?php echo htmlspecialchars($username); ?>!</span>
-                    <a href="logout.php" class="btn-secondary">Logout</a>
+                    <a href="../auth/logout.php" class="btn-secondary">Logout</a>
                 </div>
             </div>
         </nav>
@@ -77,6 +118,12 @@ try {
 
     <section class="agents-section">
         <div class="container">
+            <?php if (!empty($message)): ?>
+                <div class="alert <?php echo strpos($message, 'successfully') !== false ? 'success' : 'error'; ?>">
+                    <?php echo htmlspecialchars($message); ?>
+                </div>
+            <?php endif; ?>
+            
             <div class="section-header">
                 <h2>Our Real Estate Professionals</h2>
                 <p><?php echo count($agents); ?> experienced agents ready to assist you</p>
@@ -132,6 +179,69 @@ try {
         </div>
     </section>
 
+    <!-- Contact Agent Modal -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Contact Agent</h2>
+            <p class="modal-subtitle">Fill in your details and we'll connect you with the right agent</p>
+            <div id="modalMessage"></div>
+            <form id="contactForm" method="POST">
+                <input type="hidden" name="contact_agent" value="1">
+                <input type="hidden" id="agentId" name="agent_id" value="">
+                <div class="form-row">
+                    <div class="form-group required">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="first_name" placeholder="Enter your first name" required>
+                    </div>
+                    <div class="form-group required">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="last_name" placeholder="Enter your last name" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group required">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?>" placeholder="Enter your email address" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone" name="phone" placeholder="Enter your phone number">
+                    </div>
+                </div>
+                <div class="form-group required">
+                    <label for="interest">Interest</label>
+                    <select id="interest" name="interest" required>
+                        <option value="">Select your interest</option>
+                        <option value="house">Buying a House</option>
+                        <option value="apartment">Buying an Apartment</option>
+                        <option value="rent">Renting</option>
+                        <option value="investment">Investment</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="budget">Budget (€)</label>
+                        <input type="number" id="budget" name="budget" placeholder="Your budget range">
+                    </div>
+                    <div class="form-group">
+                        <label for="location_preference">Preferred Location</label>
+                        <input type="text" id="location_preference" name="location_preference" placeholder="City or region">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="notes">Additional Notes</label>
+                    <textarea id="notes" name="notes" rows="4" placeholder="Any additional information..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Send Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <footer>
         <div class="container">
             <div class="footer-grid">
@@ -184,72 +294,516 @@ try {
 
     <script>
         function contactAgent(agentId) {
-            alert('Contacting agent with ID: ' + agentId + '. In a real implementation, this would open a contact form.');
+            // Set the agent ID in the hidden field
+            document.getElementById('agentId').value = agentId;
+            
+            // Clear any previous messages
+            document.getElementById('modalMessage').innerHTML = '';
+            
+            // Show the modal
+            document.getElementById('contactModal').style.display = 'block';
         }
+        
+        function closeModal() {
+            document.getElementById('contactModal').style.display = 'none';
+            
+            // Reset the form
+            document.getElementById('contactForm').reset();
+            document.getElementById('agentId').value = '';
+            document.getElementById('modalMessage').innerHTML = '';
+        }
+        
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            var modal = document.getElementById('contactModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+        
+        // Handle form submission with AJAX
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            var formData = new FormData(this);
+            
+            fetch('', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(html => {
+                // Reload the page to show the message
+                location.reload();
+            })
+            .catch(error => {
+                document.getElementById('modalMessage').innerHTML = '<div class="alert error">Error sending request. Please try again.</div>';
+            });
+        });
     </script>
 
     <style>
         .agents-hero {
             margin-top: 70px;
-            padding: 80px 0;
+            padding: 100px 0;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .agents-hero:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
         }
         
         .agents-hero h1 {
-            font-size: 48px;
-            margin-bottom: 15px;
+            font-size: 52px;
+            margin-bottom: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
         
         .agents-hero p {
-            font-size: 20px;
+            font-size: 22px;
             margin-bottom: 40px;
-            opacity: 0.9;
+            opacity: 0.95;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         
         .agents-section {
-            padding: 80px 0;
-            background: #f8f9fa;
+            padding: 100px 0;
+            background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
         }
         
         .agents-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 35px;
+            margin-top: 50px;
+        }
+        
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 50px;
+        }
+        
+        .section-header h2 {
+            font-size: 36px;
+            margin-bottom: 15px;
+            color: #1A1A1A;
+            font-weight: 800;
+        }
+        
+        .section-header p {
+            font-size: 18px;
+            color: #6B6B6B;
+            line-height: 1.6;
         }
         
         .agent-card {
             background: white;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            position: relative;
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
         
         .agent-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
         }
         
         .agent-image {
-            height: 200px;
-            background: #006AFF;
+            height: 220px;
+            background: linear-gradient(135deg, #006AFF, #0056cc);
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .agent-image:before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
         }
         
         .agent-image img {
-            width: 128px;
-            height: 128px;
+            width: 140px;
+            height: 140px;
             border-radius: 50%;
-            border: 5px solid white;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 2;
         }
         
         .agent-info {
-            padding: 25px;
+            padding: 30px 25px;
             text-align: center;
+        }
+        
+        .agent-info h3 {
+            margin: 0 0 8px 0;
+            color: #1A1A1A;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        
+        .agent-email {
+            color: #006AFF;
+            font-weight: 500;
+            margin: 0 0 5px 0;
+            font-size: 15px;
+        }
+        
+        .agent-role {
+            color: #6B6B6B;
+            font-size: 14px;
+            margin: 0 0 20px 0;
+        }
+        
+        .agent-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 25px 0;
+            padding: 0 10px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            display: block;
+            font-size: 20px;
+            font-weight: 700;
+            color: #1A1A1A;
+        }
+        
+        .stat-label {
+            font-size: 13px;
+            color: #6B6B6B;
+        }
+        
+        .contact-agent {
+            background: linear-gradient(135deg, #006AFF, #0056cc);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(0, 106, 255, 0.3);
+        }
+        
+        .contact-agent:hover {
+            background: linear-gradient(135deg, #0056cc, #0044aa);
+            box-shadow: 0 6px 20px rgba(0, 106, 255, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .modal-content {
+            background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+            margin: 5% auto;
+            padding: 40px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 650px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .close {
+            color: #777;
+            float: right;
+            font-size: 32px;
+            font-weight: 300;
+            cursor: pointer;
+            position: absolute;
+            right: 25px;
+            top: 20px;
+            transition: all 0.2s ease;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: #000;
+            background-color: #f0f0f0;
+            text-decoration: none;
+            transform: rotate(90deg);
+        }
+        
+        .modal-content h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #1A1A1A;
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .modal-subtitle {
+            text-align: center;
+            color: #6B6B6B;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 22px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 15px;
+        }
+        
+        .form-group.required label:after {
+            content: " *";
+            color: #e74c3c;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e1e5eb;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #006AFF;
+            box-shadow: 0 0 0 4px rgba(0, 106, 255, 0.15);
+            background-color: #fff;
+        }
+        
+        .form-group input::placeholder {
+            color: #aaa;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 22px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid #eee;
+        }
+        
+        .btn-primary, .btn-secondary {
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #006AFF, #0056cc);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 106, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0056cc, #0044aa);
+            box-shadow: 0 6px 20px rgba(0, 106, 255, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #f1f3f5;
+            color: #495057;
+            border: 1px solid #e1e5eb;
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* CTA Section Styles */
+        .cta-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, #006AFF 0%, #0056cc 100%);
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-section:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        }
+        
+        .cta-content h2 {
+            font-size: 40px;
+            margin-bottom: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .cta-content p {
+            font-size: 20px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                padding: 25px;
+                margin: 10% auto;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .form-actions button {
+                width: 100%;
+            }
+            
+            .close {
+                right: 15px;
+                top: 15px;
+                font-size: 28px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .modal-content {
+                padding: 20px 15px;
+            }
+            
+            .modal-content h2 {
+                font-size: 24px;
+            }
+            
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                padding: 12px 14px;
+                font-size: 15px;
+            }
+            
+            .btn-primary, .btn-secondary {
+                padding: 12px 20px;
+                font-size: 15px;
+            }
         }
     </style>
     

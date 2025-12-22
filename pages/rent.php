@@ -97,7 +97,7 @@ if ($isLoggedIn) {
                 <div class="nav-actions">
                     <?php if ($isLoggedIn): ?>
                         <span class="user-welcome"><?php echo t('hello'); ?>, <?php echo htmlspecialchars($username); ?>!</span>
-                        <a href="logout.php" class="btn-secondary"><?php echo t('logout'); ?></a>
+                        <a href="../auth/logout.php" class="btn-secondary"><?php echo t('logout'); ?></a>
                     <?php else: ?>
                         <button class="btn-primary" onclick="location.href='login.php'"><?php echo t('login'); ?></button>
                     <?php endif; ?>

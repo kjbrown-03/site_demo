@@ -39,11 +39,6 @@ function renderNavigation($currentPage = '', $username = '', $userRole = '') {
         ]
     ];
 
-    $settingsLinks = [
-        ['url' => '../user/account_settings.php', 'label' => 'Langue & Thème'],
-        ['url' => '../user/account_settings.php', 'label' => 'Informations Utilisateur']
-    ];
-
     $commonLinks = [
         ['url' => '../user/favorites.php', 'label' => 'Favoris', 'active' => $currentPage === 'favorites.php']
     ];
@@ -68,16 +63,6 @@ function renderNavigation($currentPage = '', $username = '', $userRole = '') {
         echo '            <li><a href="' . $link['url'] . '"' . $activeClass . '>' . $link['label'] . '</a></li>';
     }
 
-    // Add settings dropdown for all roles
-    echo '            <li class="dropdown">';
-    echo '                <a href="#" class="dropbtn">Paramètres <i class="fas fa-caret-down"></i></a>';
-    echo '                <div class="dropdown-content">';
-    foreach ($settingsLinks as $link) {
-        echo '                    <a href="' . $link['url'] . '">' . $link['label'] . '</a>';
-    }
-    echo '                </div>';
-    echo '            </li>';
-
     echo '        </ul>';
     echo '        <div class="nav-actions">';
     
@@ -95,8 +80,6 @@ function renderNavigation($currentPage = '', $username = '', $userRole = '') {
         echo '                        <p>' . htmlspecialchars($username) . '</p>';
         echo '                    </div>';
         echo '                    <a href="../user/account_settings.php"><i class="fas fa-cog"></i> Paramètres</a>';
-        echo '                    <a href="../user/account_settings.php#language-theme"><i class="fas fa-language"></i> Langue & Thème</a>';
-        echo '                    <a href="../user/account_settings.php#user-info"><i class="fas fa-user-edit"></i> Informations Utilisateur</a>';
         echo '                    <a href="../auth/logout.php"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>';
         echo '                </div>';
         echo '            </div>';
@@ -216,5 +199,4 @@ function renderNavigation($currentPage = '', $username = '', $userRole = '') {
     echo '    }';
     echo '</script>';
 }
-
 ?>

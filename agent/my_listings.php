@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once dirname(__DIR__) . '/config.php';
+require_once dirname(__DIR__) . '/includes/language_handler.php';
 require_once dirname(__DIR__) . '/includes/navigation.php';
 
 // Check if user is logged in
@@ -11,6 +12,16 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'agent') {
 
 $username = $_SESSION['username'];
 $userRole = $_SESSION['role'];
+
+// Fetch properties for this agent
+try {
+    $stmt = $pdo->prepare("SELECT * FROM properties WHERE agent_id = ? ORDER BY created_at DESC");
+    $stmt->execute([$_SESSION['user_id']]);
+    $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch(PDOException $e) {
+    $properties = [];
+    error_log("Error fetching properties: " . $e->getMessage());
+}
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -347,7 +358,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script>
         // Close modal when clicking outside
         window.onclick = function(event) {
-<<<<<<< HEAD:agent/my_listings.php
             if (!event.target.matches('.user-avatar') && !event.target.matches('.user-avatar *')) {
                 var dropdowns = document.getElementsByClassName("profile-dropdown-content");
                 for (var i = 0; i < dropdowns.length; i++) {

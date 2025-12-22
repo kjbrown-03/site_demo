@@ -36,7 +36,7 @@ try {
     <link rel="stylesheet" href="../assets/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="<?php echo $currentTheme; ?>">
     <header>
         <nav class="navbar">
             <div class="container">
@@ -76,9 +76,6 @@ try {
                             <div class="profile-info">
                                 <p><?php echo htmlspecialchars($username); ?></p>
                             </div>
-                            <a href="account_settings.php"><i class="fas fa-cog"></i> Paramètres</a>
-                            <a href="account_settings.php#language-theme"><i class="fas fa-language"></i> Langue & Thème</a>
-                            <a href="account_settings.php#user-info"><i class="fas fa-user-edit"></i> Informations Utilisateur</a>
                             <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
                         </div>
                     </div>

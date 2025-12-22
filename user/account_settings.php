@@ -1,46 +1,7 @@
 <?php
 session_start();
 require_once dirname(__DIR__) . '/config.php';
-
-// Simple translation function
-function t($key) {
-    $translations = [
-        'fr' => [
-            'account_settings' => 'Paramètres du Compte',
-            'personalize_experience' => 'Personnalisez votre expérience',
-            'profile_picture' => 'Photo de Profil',
-            'profile' => 'Profil',
-            'language_and_theme' => 'Langue & Thème',
-            'user_information' => 'Informations Utilisateur',
-            'notifications' => 'Notifications',
-            'change_your_profile_picture' => 'Changez votre photo de profil',
-            'no_profile_picture' => 'Aucune photo de profil',
-            'select_new_picture' => 'Sélectionner une nouvelle photo',
-            'supported_formats' => 'Formats supportés: JPG, JPEG, PNG, GIF',
-            'upload_picture' => 'Télécharger la photo',
-            'update_profile' => 'Mettre à jour le profil',
-            'first_name' => 'Prénom',
-            'last_name' => 'Nom',
-            'email' => 'Adresse Email',
-            'phone' => 'Numéro de Téléphone',
-            'city' => 'Ville',
-            'country' => 'Pays',
-            'save_changes' => 'Enregistrer les modifications',
-            'cancel' => 'Annuler',
-            'language' => 'Langue',
-            'theme' => 'Thème',
-            'light' => 'Clair',
-            'dark' => 'Sombre',
-            'notifications_enabled' => 'Activer les notifications'
-        ]
-    ];
-    
-    $currentLang = 'fr';
-    if (isset($translations[$currentLang][$key])) {
-        return $translations[$currentLang][$key];
-    }
-    return $key;
-}
+require_once dirname(__DIR__) . '/includes/language_handler.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -154,13 +115,25 @@ if (isset($_POST['update_preferences'])) {
         // Update session variables
         $_SESSION['language'] = $language;
         $_SESSION['theme'] = $theme;
+        
+        // Also update the language preference in the database using the language handler
+        setLanguage($language);
+        setTheme($theme);
+        
+        // Update local variables to reflect changes immediately
+        $GLOBALS['currentLang'] = $language;
+        $GLOBALS['currentTheme'] = $theme;
+        
+        // Redirect to the same page to apply changes immediately
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?updated=1');
+        exit();
     } catch (PDOException $e) {
         $error = "Erreur lors de la mise à jour des préférences.";
     }
 }
 ?>
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="<?php echo htmlspecialchars(getCurrentLanguage()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -168,7 +141,7 @@ if (isset($_POST['update_preferences'])) {
     <link rel="stylesheet" href="../assets/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="<?php echo getCurrentTheme(); ?>">
     <header>
         <nav class="navbar">
             <div class="container">
@@ -203,14 +176,19 @@ if (isset($_POST['update_preferences'])) {
         <div class="container">
             <h1><?php echo t('account_settings'); ?></h1>
             <p><?php echo t('personalize_experience'); ?></p>
+            <div class="hero-actions">
+                <button class="btn-primary" onclick="returnToDashboard()">
+                    <i class="fas fa-arrow-left"></i> Retour au Tableau de Bord
+                </button>
+            </div>
         </div>
     </section>
 
     <section class="settings-content">
         <div class="container">
-            <?php if (!empty($message)): ?>
+            <?php if (!empty($message) || isset($_GET['updated'])): ?>
                 <div class="alert success">
-                    <?php echo htmlspecialchars($message); ?>
+                    <?php echo !empty($message) ? htmlspecialchars($message) : 'Préférences mises à jour avec succès!'; ?>
                 </div>
             <?php endif; ?>
             
@@ -363,6 +341,29 @@ if (isset($_POST['update_preferences'])) {
             document.getElementById("profileDropdown").classList.toggle("show");
         }
         
+        function returnToDashboard() {
+            // Redirect to the appropriate dashboard based on user role
+            const userRole = '<?php echo $userRole; ?>';
+            let dashboardUrl = '../index.php'; // Default to home page
+            
+            switch(userRole) {
+                case 'buyer':
+                    dashboardUrl = '../dashboards/buyer_dashboard.php';
+                    break;
+                case 'seller':
+                    dashboardUrl = '../dashboards/seller_dashboard.php';
+                    break;
+                case 'agent':
+                    dashboardUrl = '../dashboards/agent_dashboard.php';
+                    break;
+                case 'admin':
+                    dashboardUrl = '../dashboards/admin_dashboard.php';
+                    break;
+            }
+            
+            window.location.href = dashboardUrl;
+        }
+        
         // Tab switching functionality
         document.addEventListener('DOMContentLoaded', function() {
             // Get all menu items and content sections
@@ -445,6 +446,10 @@ if (isset($_POST['update_preferences'])) {
         .settings-hero p {
             font-size: 1.2rem;
             opacity: 0.9;
+        }
+        
+        .hero-actions {
+            margin-top: 20px;
         }
         
         .settings-content {

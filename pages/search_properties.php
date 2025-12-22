@@ -58,6 +58,7 @@ try {
     $totalItems = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
     $totalPages = getTotalPages($totalItems, $itemsPerPage);
 } catch(PDOException $e) {
+    error_log("Error counting properties: " . $e->getMessage());
     $totalItems = 0;
     $totalPages = 1;
 }
@@ -72,6 +73,9 @@ try {
     $stmt->execute($params);
     $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch(PDOException $e) {
+    error_log("Error fetching properties: " . $e->getMessage());
+    error_log("SQL Query: " . $sql);
+    error_log("Parameters: " . print_r($params, true));
     $properties = [];
     $error = "An error occurred while fetching properties.";
 }

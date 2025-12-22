@@ -46,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Error submitting listing: " . $e->getMessage();
         }
     }
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo $htmlLang; ?>" class="<?php echo $currentTheme; ?>">
@@ -78,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </ul>
                 <div class="nav-actions">
                     <span class="user-welcome"><?php echo t('hello'); ?>, <?php echo htmlspecialchars($username); ?>!</span>
-                    <a href="logout.php" class="btn-secondary"><?php echo t('logout'); ?></a>
+                    <a href="../auth/logout.php" class="btn-secondary"><?php echo t('logout'); ?></a>
                 </div>
             </div>
         </nav>
